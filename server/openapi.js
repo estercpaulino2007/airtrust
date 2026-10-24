@@ -71,6 +71,8 @@ module.exports = {
     "/api/export/readings.json": { get: op("Research export (JSON)", "Research", { parameters: [q("days", "1-30", "integer"), q("sensor", "Sensor code"), q("official", "true = only AI-trusted readings", "boolean")] }) },
     "/api/admin/overview": { get: op("Users, thresholds, audit log (admin)", "Admin", secured) },
     "/api/admin/thresholds/{pollutant}": { put: op("Update thresholds (admin)", "Admin", { ...secured, parameters: [idParam("pollutant", "pm25|pm10|no2|o3")] }) },
+    "/api/assistant/status": { get: op("Assistant mode (LLM provider or offline)", "Assistant") },
+    "/api/assistant": { post: op("Ask the embedded AI assistant (answers grounded in live data)", "Assistant", { requestBody: { content: { "application/json": { schema: { type: "object", properties: { messages: { type: "array", items: { type: "object", properties: { role: { type: "string", enum: ["user", "assistant"] }, content: { type: "string" } } } } } } } } } }) },
     "/api/demo/tamper": { post: op("DEMO ONLY: edit a stored record to show integrity failure (admin)", "Demo", secured) },
   },
 };

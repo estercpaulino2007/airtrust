@@ -24,7 +24,8 @@ Air pollution is among the largest environmental health risks, and the WHO cut i
 2. **Understand:** an explainable AI engine checks every reading against physical limits, its own 24 h history (z-score, moving average), its 30-day hour-of-day profile, its neighbours (spatial consensus), a multivariate Isolation Forest, zero-variance (frozen firmware) and calibration drift. It outputs an **anomaly score**, a **confidence score**, a status and a plain-language explanation.
 3. **Reason:** corroborated anomalies become **environmental events** (biomass smoke, industrial emission, dust, traffic, heatwave) classified from pollutant signatures and wind; citizen reports are correlated (0–100) by distance, timing, pollutant increase, wind and neighbour confirmation. Events are verified at ≥ 80% confidence or dismissed.
 4. **Trust:** readings are hashed and anchored every 30 s as a Merkle root; verified events and their peak readings are anchored individually in `AirTrustLedger.sol`.
-5. **Act:** critical alerts with recommended actions, 1/3/6 h forecasts, maintenance alerts for faulty sensors, and a **public verification portal** where anyone can confirm (or disprove) the integrity of any record.
+5. **Explain:** a *How it works* page, a 2-minute guided demo with one-click steps, and an embedded **AI assistant** that answers questions ("Is it safe to run in Pinheiros?", "Why is AT-010 flagged?") in English or Portuguese, grounded in live data (bring-your-own-key LLM such as Groq's free tier, with an offline mode that needs no key).
+6. **Act:** critical alerts with recommended actions, 1/3/6 h forecasts, maintenance alerts for faulty sensors, and a **public verification portal** where anyone can confirm (or disprove) the integrity of any record.
 
 ## How we built it
 - **Smart contract:** Solidity 0.8.24, Hardhat, ethers v6. Reading, event and Merkle batch proofs; on-chain `verifyBatchMembership()`; duplicate-hash protection; authorised submitters; events for every proof. Local Hardhat by default, Polygon Amoy ready.
@@ -41,7 +42,8 @@ Air pollution is among the largest environmental health risks, and the WHO cut i
 ## Accomplishments we're proud of
 - End-to-end, running in one command: sensor → AI → event → citizen correlation → on-chain proof → alert → public verification.
 - The integrity-failure demo: edit one value in the database and the portal immediately reports **Integrity check failed**.
-- 21 automated tests (9 contract, 12 backend).
+- 22 automated tests (9 contract, 13 backend).
+- Anyone can understand it in two minutes: the guided demo runs the whole story with one click per step, and the AI assistant answers questions about live data.
 
 ## What we learned
 Trust in climate data is two problems: *is the measurement right?* (AI, calibration, consensus) and *is the record unchanged?* (cryptography). Neither alone is enough.
@@ -59,8 +61,8 @@ Residents and community groups · schools and universities · environmental NGOs
 - Researchers get a documented API and exports; blockchain verification is optional and never blocks basic use.
 
 ## Built with
-solidity · hardhat · ethers.js · node.js · sqlite · websocket · leaflet · javascript · openapi · swagger · machine-learning · isolation-forest · merkle-tree · polygon
+solidity · hardhat · groq · llm · ethers.js · node.js · sqlite · websocket · leaflet · javascript · openapi · swagger · machine-learning · isolation-forest · merkle-tree · polygon
 
 ## Links
-- Repository: https://github.com/<you>/airtrust
+- Repository: https://github.com/estercpaulino2007/airtrust
 - Demo video: <YouTube link>

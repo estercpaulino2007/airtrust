@@ -158,3 +158,22 @@ test("historical engine: Isolation Forest scores outliers higher than normal poi
   const outlier = eng.forest.score(features({ ...data[10], pm25: 400, pm10: 60, no2: 300 }));
   assert.ok(outlier > normal, `${outlier} > ${normal}`);
 });
+
+test("offline assistant answers from live data in English and Portuguese", () => {
+  const ctx = setup();
+  ctx.sim.trigger("burning", Date.now());
+  runLive(ctx, 120);
+  const assistant = require("../server/ai/assistant");
+  const snap = assistant.snapshot(ctx.core, ctx.db, { connected: false });
+  // snapshot freshness is based on wall-clock time; the live run ends ~now, so data is fresh
+  const en = assistant.localAnswer("Is it safe to go outside in Jaguaré?", snap);
+  assert.match(en, /AT-007/);
+  assert.match(en, /not medical advice/i);
+  const pt = assistant.localAnswer("O que está acontecendo agora?", snap);
+  assert.match(pt, /São Paulo agora/);
+  assert.match(pt, /Biomass smoke plume|Evento em andamento|evento/i);
+  assert.match(assistant.localAnswer("What does each tab do?", snap), /Command Center/);
+  assert.match(assistant.localAnswer("O que é PM2.5?", snap), /partículas finas/);
+  const ctxText = assistant.contextText(snap);
+  assert.match(ctxText, /SIMULATED/);
+});

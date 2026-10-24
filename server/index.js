@@ -9,6 +9,7 @@ const { AirTrust } = require("./core");
 const { Ledger } = require("./ledger");
 const auth = require("./auth");
 const openapi = require("./openapi");
+const assistant = require("./ai/assistant");
 
 const PUBLIC = path.join(__dirname, "..", "public");
 const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json", ".png": "image/png", ".ico": "image/x-icon" };
@@ -261,6 +262,15 @@ async function main() {
   });
 
   route("GET", "/api/openapi.json", "public", async () => openapi);
+
+  // Embedded AI assistant (bring-your-own-key LLM, offline fallback grounded in live data)
+  route("GET", "/api/assistant/status", "public", async () => assistant.status());
+  route("POST", "/api/assistant", "public", async ({ body, req }) => {
+    if (!rateLimit("assistant:" + req.socket.remoteAddress, 20)) throw new HttpError(429, "Too many questions, wait a minute.");
+    const messages = Array.isArray(body.messages) ? body.messages.filter((m) => m && typeof m.content === "string").slice(-12) : [];
+    if (!messages.length) throw new HttpError(400, "messages[] required");
+    return assistant.answer({ messages, core, db, ledgerStatus: await ledger.status() });
+  });
   route("GET", "/api/stats", "public", async () => {
     const since = new Date(Date.now() - 60_000).toISOString();
     return {

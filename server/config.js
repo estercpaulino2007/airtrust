@@ -1,5 +1,14 @@
 // Central configuration. Every threshold is configurable per deployment (city, agency, sensor type).
 const path = require("path");
+const fs = require("fs");
+
+// Load .env (KEY=value lines) so `npm run server` and `npm start` behave the same.
+try {
+  fs.readFileSync(path.join(__dirname, "..", ".env"), "utf8").split(/\r?\n/).forEach((l) => {
+    const m = l.match(/^\s*([A-Z0-9_]+)\s*=\s*([^#]*)/);
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].trim();
+  });
+} catch {}
 
 module.exports = {
   port: Number(process.env.PORT || 4000),
@@ -14,6 +23,16 @@ module.exports = {
   batchMs: Number(process.env.BATCH_MS || 30000),
   seedDays: Number(process.env.SEED_DAYS || 30),
   seedStepMinutes: 20,
+
+  // Embedded AI assistant: bring-your-own-key. Without a key the assistant runs in offline mode
+  // (rule-based answers grounded in live data). Groq's free tier works with the OpenAI format.
+  assistant: {
+    apiKey: process.env.ASSISTANT_API_KEY || "",
+    format: (process.env.ASSISTANT_API_FORMAT || "openai").toLowerCase(), // "openai" | "anthropic"
+    baseUrl: process.env.ASSISTANT_API_BASE_URL || "https://api.groq.com/openai",
+    model: process.env.ASSISTANT_MODEL || "openai/gpt-oss-120b",
+    maxTokens: Number(process.env.ASSISTANT_MAX_TOKENS || 900),
+  },
 
   // Derived from WHO Global Air Quality Guidelines 2021 (24h guideline + interim targets).
   // Not a legal standard: configurable thresholds for the platform.

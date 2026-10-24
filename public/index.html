@@ -30,14 +30,15 @@
   </div>
   <span class="live" id="livePill"><i></i><span>LIVE</span></span>
   <nav class="tabs" aria-label="Main">
+    <button data-view="guide">How it works</button>
     <button data-view="command" class="active">Command Center</button>
     <button data-view="events">Events <span class="badge" id="evBadge" hidden>0</span></button>
     <button data-view="alerts">Alerts <span class="badge" id="alBadge" hidden>0</span></button>
     <button data-view="citizens">Citizen Signals</button>
     <button data-view="ledger">Trust Ledger</button>
     <button data-view="verify">Verify</button>
-    <button data-view="simulator">Scenario Simulator</button>
-    <button data-view="research">Research API</button>
+    <button data-view="simulator">Simulator</button>
+    <button data-view="research">Open Data API</button>
     <button data-view="admin">Admin</button>
   </nav>
   <span class="sim-badge" title="All sensor readings in this prototype are simulated">SIMULATED DATA</span>
@@ -72,7 +73,7 @@
       <div id="map" role="application" aria-label="Environmental map of São Paulo with sensor markers"></div>
       <div class="radar" aria-hidden="true"></div>
       <div class="map-vignette" aria-hidden="true"></div>
-      <div class="map-overlay map-title glass"><span class="micro">Atmosphere command center</span><h2 id="mapTitle">São Paulo · PM2.5 µg/m³</h2></div>
+      <div class="map-overlay map-title glass"><span class="micro">Atmosphere command center</span><h2 id="mapTitle">São Paulo · PM2.5 µg/m³</h2><button class="btn small" id="mapHelp" style="margin-top:6px" aria-label="How to read this screen">ⓘ How to read this screen</button></div>
       <div class="map-overlay layers glass" role="group" aria-label="Map layers">
         <label><input type="checkbox" data-layer="heat" checked> Pollution heatmap</label>
         <label><input type="checkbox" data-layer="wind" checked> Wind (simulated)</label>
@@ -104,6 +105,9 @@
       </div>
     </div>
   </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="view-guide" class="view" aria-label="How AirTrust works"><div class="scroll"><div class="page" id="guidePage"></div></div></section>
 
   <!-- EVENTS -->
   <section id="view-events" class="view"><div class="scroll"><div class="page">
@@ -231,7 +235,20 @@
 <div id="palette" role="dialog" aria-modal="true" aria-label="Command palette"><div class="box glass"><input id="pInput" placeholder="Type a command… (sensor, scenario, view)"><ul id="pList"></ul></div></div>
 <div id="toasts" aria-live="assertive"></div>
 
+<!-- Guided demo coach -->
+<aside id="coach" class="glass" aria-live="polite" hidden></aside>
+
+<!-- Embedded AI assistant -->
+<button id="aiFab" aria-label="Ask AirTrust AI" aria-expanded="false"><span class="spark">✦</span><span>Ask AirTrust AI</span></button>
+<section id="aiPanel" class="glass" aria-label="AirTrust AI assistant" hidden>
+  <header><div><b>AirTrust AI</b><div class="micro" id="aiMode">connecting…</div></div><button class="btn small" id="aiClose" aria-label="Close assistant">✕</button></header>
+  <div id="aiMsgs" role="log" aria-live="polite"></div>
+  <div id="aiChips"></div>
+  <form id="aiForm"><input id="aiInput" placeholder="Ask anything… (English or Português)" autocomplete="off" maxlength="1000" aria-label="Your question"><button class="btn primary" type="submit" aria-label="Send">➤</button></form>
+</section>
+
 <script src="/vendor/leaflet/leaflet.js"></script>
 <script src="/app.js"></script>
+<script src="/guide.js"></script>
 </body>
 </html>

@@ -28,6 +28,7 @@ Air pollution is one of the largest environmental health risks; the WHO tightene
 | **Understand** | Explainable AI validates every reading, detects anomalies, cross-checks neighbours, forecasts 1/3/6 h and reasons about events |
 | **Trust** | SHA-256 fingerprints anchored on-chain: Merkle batches for every reading, individual proofs for verified events and critical readings |
 | **Act** | Alerts with recommended actions, public verification portal, open research API and exports |
+| **Explain** | A *How it works* page, a 2-minute guided demo and an embedded **AI assistant** that answers questions from live data (EN/PT) |
 
 **The key idea:** AI and blockchain solve two different trust problems.
 - The **AI** answers *"is this measurement credible?"* (calibration, faults, glitches, consensus).
@@ -85,6 +86,7 @@ server/
   ai/engine.js                 Explainable validation + anomaly detection
   ai/isolationForest.js        Isolation Forest implementation
   ai/forecast.js               WMA + OLS forecast with confidence intervals
+  ai/assistant.js              Embedded assistant (BYOK LLM + offline mode, live data)
   core.js                      Ingestion pipeline, event reasoning, report correlation,
                                alerts, Merkle anchoring, integrity verification
   simulator.js                 IoT mesh + 12 scenarios
@@ -96,7 +98,7 @@ server/
 scripts/start.js               One-command launcher (compile, chain, seed, server)
 scripts/seed.js                30 days of history, 7 historical scenarios, 25 reports
 scripts/deploy.js              Deploy to Polygon Amoy
-public/                        Command center (index.html, app.js, styles.css), Swagger page
+public/                        Command center (index.html, app.js, guide.js, styles.css), Swagger page
 tests/backend.test.js          AI, correlation, hashing, Merkle, auth tests
 ```
 
@@ -105,13 +107,15 @@ tests/backend.test.js          AI, correlation, hashing, Merkle, auth tests
 Requirements: **Node.js 22.13+** and Git. No Docker, Python or paid services needed. Works offline except for map tiles and web fonts.
 
 ```bash
-git clone https://github.com/<you>/airtrust.git
+git clone https://github.com/estercpaulino2007/airtrust.git
 cd airtrust
 npm install
 npm start
 ```
 
-Then open **http://localhost:4000**.
+Then open **http://localhost:4000**. First-time visitors get a welcome dialog: choose **Take the 2-minute guided demo** to be walked through the whole story with one click per step.
+
+> **Windows + Node 24:** Hardhat 2 sometimes crashes on exit after compiling (`Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)`). `npm start` tolerates it. If the blockchain itself won't start, use two terminals: `npx hardhat node` in the first, then `npm run seed` and `npm run server` in the second, or install Node 22 LTS.
 
 `npm start` compiles the contract (bundled solc-js, offline), starts a local Hardhat blockchain on `:8545`, seeds 30 days of history on first run (~10 s, includes anchoring 31 Merkle batches and 5 event proofs), and starts the API + command center.
 
@@ -135,6 +139,10 @@ Copy `.env.example` to `.env` to customise. Defaults work out of the box.
 | `BATCH_MS` | `30000` | Merkle batch anchoring interval |
 | `RPC_URL` | `http://127.0.0.1:8545` | Blockchain RPC |
 | `LEDGER_PRIVATE_KEY` / `CONTRACT_ADDRESS` | – | Use an existing deployment (e.g. Polygon Amoy) |
+| `ASSISTANT_API_KEY` | – | Optional LLM key for the AI assistant (Groq free tier works). Without it the assistant runs in offline mode |
+| `ASSISTANT_API_FORMAT` | `openai` | `openai` (Groq, OpenAI-compatible) or `anthropic` |
+| `ASSISTANT_API_BASE_URL` | `https://api.groq.com/openai` | Provider base URL (`https://api.anthropic.com` for Anthropic) |
+| `ASSISTANT_MODEL` | `openai/gpt-oss-120b` | Model name |
 
 ## Demo credentials
 
@@ -150,6 +158,8 @@ All passwords: **`AirTrust2026!`**
 
 ## Demo checklist (3–5 min)
 
+> Shortcut: click **Take the 2-minute guided demo** in the welcome dialog (or *How it works → Start guided demo*) and the app walks through steps 2–8 for you.
+
 1. **Boot** → mission-control sequence checks sensors, AI engine and ledger.
 2. **Command Center** → live map, 11/12 sensors online (AT-011 offline), AT-010 flagged for calibration drift.
 3. **Sign in as admin** → *Scenario Simulator* → **Localized burning event**.
@@ -160,6 +170,18 @@ All passwords: **`AirTrust2026!`**
 8. **Tamper with this record** → the database value changes → **✕ Integrity check failed**. *Restore original* → verified again.
 9. **Scenario Simulator** → *Faulty sensor* → AT-012 becomes `sensor_fault`, excluded from averages, maintenance alert.
 10. **Research API** → Swagger docs, CSV export with AI status and proof per row.
+
+## Onboarding & AI assistant
+
+![Guided demo: event verified and sealed](docs/screenshot-guided-demo.png)
+
+- **How it works** tab: what AirTrust is and who it's for, the 5-step pipeline, what every tab does, how to read the map, a glossary and the demo accounts.
+- **Guided demo** (2 minutes, 9 steps): every step has a *do it for me* button and waits for the live system (e.g. "wait until neighbours confirm the fire"), ending with the tamper demo.
+- **"How to read this screen"** help on the command center.
+- **Ask AirTrust AI** (✦ button, bottom right): answers questions like *"Is it safe to run in Pinheiros?"*, *"Why is AT-010 flagged?"*, *"What does each tab do?"* in English or Portuguese, grounded in a live snapshot of sensors, events, alerts, reports and ledger status.
+  - **LLM mode** (bring-your-own-key): set `ASSISTANT_API_KEY` (e.g. a free [Groq](https://console.groq.com) key). The model receives the live snapshot and is instructed to answer only from it, never inventing data.
+  ![Ask AirTrust AI answering in Portuguese from live data](docs/screenshot-assistant.png)
+  - **Offline mode** (default, no key): a deterministic bilingual assistant answers from the same live data, so the feature works for anyone who clones the repo. If the LLM provider fails, it falls back automatically.
 
 ## How the AI works
 
@@ -244,7 +266,7 @@ npm test
 ```
 
 - **9 contract tests** (Hardhat/Chai): proofs, events, duplicates, zero hash, unauthorised submitters, on-chain Merkle membership, totals.
-- **12 backend tests** (`node:test`): ingestion validation, invalid readings, burning event with spatial consensus and verification, isolated spike held as suspicious, stuck sensor fault, calibration drift, citizen-report correlation, forecast intervals, hash sensitivity, Merkle proofs, JWT and roles, Isolation Forest.
+- **13 backend tests** (`node:test`): ingestion validation, invalid readings, burning event with spatial consensus and verification, isolated spike held as suspicious, stuck sensor fault, calibration drift, citizen-report correlation, forecast intervals, hash sensitivity, Merkle proofs, JWT and roles, Isolation Forest, offline assistant (EN/PT, live data).
 
 ## Limitations
 

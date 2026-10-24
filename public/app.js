@@ -341,7 +341,9 @@ function showView(v) {
   if (v === "simulator") loadScenarios();
   if (v === "research") renderResearch();
   if (v === "admin") loadAdmin();
+  if (v === "guide") window.AT?.onGuide?.();
   S.view = v;
+  window.AT?.onView?.(v);
 }
 
 function renderEvents() {
@@ -689,6 +691,17 @@ async function init() {
   });
   $("#modal").addEventListener("click", (e) => { if (e.target.id === "modal") $("#modal").classList.remove("open"); });
 }
+
+async function loginAs(email) {
+  if (S.user && S.user.email === email) return S.user;
+  const d = await api("/api/auth/login", { method: "POST", body: { email, password: "AirTrust2026!" } });
+  S.token = d.token; S.user = d.user;
+  try { sessionStorage.setItem("airtrust_session", JSON.stringify(d)); } catch {}
+  renderUser();
+  return d.user;
+}
+
+window.AT = Object.assign(window.AT || {}, { S, api, fitSensors, esc, toast, showView, openSensor, runVerify, trigger, openLogin, loginAs, upsert, renderReports, renderReportsOnMap, label, fmt });
 
 boot();
 init().catch((e) => { console.error(e); toast("Could not reach the AirTrust API", e.message, "critical"); });

@@ -33,14 +33,17 @@ async function rpcUp() {
     process.exit(1);
   }
   console.log("▸ Compiling AirTrustLedger.sol…");
-  const c = spawnSync(npx, ["hardhat", "compile", "--quiet"], { cwd: root, stdio: "inherit", shell: process.platform === "win32" });
-  if (c.status !== 0) process.exit(c.status);
+  const env = { ...process.env, HARDHAT_DISABLE_TELEMETRY_PROMPT: "true" };
+  const c = spawnSync(npx, ["hardhat", "compile", "--quiet"], { cwd: root, stdio: "inherit", env, shell: process.platform === "win32" });
+  // Hardhat 2 can crash on exit under Node 24 on Windows even after a successful compile.
+  const artifact = path.join(root, "artifacts", "contracts", "AirTrustLedger.sol", "AirTrustLedger.json");
+  if (c.status !== 0 && !fs.existsSync(artifact)) process.exit(c.status || 1);
 
   let node;
   let fresh = false;
   if (local && !(await rpcUp())) {
     console.log("▸ Starting local Hardhat blockchain on :8545…");
-    node = spawn(npx, ["hardhat", "node"], { cwd: root, stdio: ["ignore", "ignore", "inherit"], shell: process.platform === "win32" });
+    node = spawn(npx, ["hardhat", "node"], { cwd: root, env, stdio: ["ignore", "ignore", "inherit"], shell: process.platform === "win32" });
     for (let i = 0; i < 60 && !(await rpcUp()); i++) await new Promise((r) => setTimeout(r, 500));
     fresh = true;
   }
