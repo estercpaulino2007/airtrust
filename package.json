@@ -1,0 +1,43 @@
+{
+  "name": "airtrust",
+  "version": "2.0.0",
+  "description": "AirTrust — Climate Intelligence OS: verifiable air-quality intelligence with IoT, explainable AI, citizen science and blockchain integrity proofs",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node --no-warnings scripts/start.js",
+    "reseed": "node --no-warnings scripts/start.js --reseed",
+    "seed": "node --no-warnings scripts/seed.js",
+    "server": "node --no-warnings server/index.js",
+    "chain": "hardhat node",
+    "compile": "hardhat compile",
+    "test": "hardhat test && node --no-warnings --test tests/backend.test.js",
+    "test:contracts": "hardhat test",
+    "test:backend": "node --no-warnings --test tests/backend.test.js",
+    "deploy:amoy": "hardhat run scripts/deploy.js --network amoy"
+  },
+  "keywords": [
+    "climate",
+    "air-quality",
+    "iot",
+    "blockchain",
+    "ai",
+    "hackathon"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.2",
+    "hardhat": "^2.29.1"
+  },
+  "dependencies": {
+    "ethers": "^6.17.0",
+    "leaflet": "^1.9.4",
+    "solc": "^0.8.24",
+    "swagger-ui-dist": "^5.17.14",
+    "ws": "^8.22.0"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22.13"
+  }
+}

@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AirTrust — Climate Intelligence OS</title>
+<meta name="description" content="Verifiable air-quality intelligence: IoT sensors, citizen science, explainable AI and blockchain integrity proofs.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%2300e5ff' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%237c5cff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<div id="boot" role="status" aria-live="polite">
+  <div class="boot-box">
+    <div class="boot-logo">AIRTRUST</div>
+    <div class="boot-sub">CLIMATE INTELLIGENCE OS · MISSION CONTROL</div>
+    <div id="bootLines"></div>
+    <div class="boot-bar"><i id="bootBar"></i></div>
+  </div>
+</div>
+
+<header id="topbar">
+  <div class="brand" aria-label="AirTrust">
+    <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="#00e5ff" stroke-width="2"/><path d="M5 18c5-6 9 4 14-2s6-2 8-1" fill="none" stroke="#7c5cff" stroke-width="2"/><circle cx="16" cy="16" r="3" fill="#22e5a1"/></svg>
+    <span>AIRTRUST</span>
+  </div>
+  <span class="live" id="livePill"><i></i><span>LIVE</span></span>
+  <nav class="tabs" aria-label="Main">
+    <button data-view="command" class="active">Command Center</button>
+    <button data-view="events">Events <span class="badge" id="evBadge" hidden>0</span></button>
+    <button data-view="alerts">Alerts <span class="badge" id="alBadge" hidden>0</span></button>
+    <button data-view="citizens">Citizen Signals</button>
+    <button data-view="ledger">Trust Ledger</button>
+    <button data-view="verify">Verify</button>
+    <button data-view="simulator">Scenario Simulator</button>
+    <button data-view="research">Research API</button>
+    <button data-view="admin">Admin</button>
+  </nav>
+  <span class="sim-badge" title="All sensor readings in this prototype are simulated">SIMULATED DATA</span>
+  <button class="btn small" id="paletteBtn" aria-label="Open command palette"><kbd>Ctrl K</kbd></button>
+  <button class="btn small" id="themeBtn" aria-label="Toggle light or dark theme">◐</button>
+  <button class="btn small" id="userBtn">Sign in</button>
+</header>
+
+<main>
+  <!-- COMMAND CENTER -->
+  <section id="view-command" class="view active" aria-label="Atmosphere command center">
+    <div class="side">
+      <div class="glass">
+        <div class="kpis">
+          <div class="kpi"><span class="micro">Sensors online</span><b id="kOnline">–</b></div>
+          <div class="kpi"><span class="micro">Readings / min</span><b id="kRpm">–</b></div>
+          <div class="kpi alert"><span class="micro">Active anomalies</span><b id="kAnom">–</b></div>
+          <div class="kpi"><span class="micro">Verified events</span><b id="kEvents">–</b></div>
+        </div>
+      </div>
+      <div class="glass" style="flex:1 1 auto;display:flex;flex-direction:column">
+        <div class="panel-h"><span class="micro">Sensor mesh · São Paulo</span><span class="mono dim" id="meshCount"></span></div>
+        <div class="filters" role="group" aria-label="Pollutant shown">
+          <button class="chip on" data-pol="pm25">PM2.5</button><button class="chip" data-pol="pm10">PM10</button>
+          <button class="chip" data-pol="no2">NO₂</button><button class="chip" data-pol="o3">O₃</button><button class="chip" data-pol="temperature">Temp</button>
+        </div>
+        <div class="sensor-list" id="sensorList" role="list"></div>
+      </div>
+    </div>
+
+    <div id="mapwrap">
+      <div id="map" role="application" aria-label="Environmental map of São Paulo with sensor markers"></div>
+      <div class="radar" aria-hidden="true"></div>
+      <div class="map-vignette" aria-hidden="true"></div>
+      <div class="map-overlay map-title glass"><span class="micro">Atmosphere command center</span><h2 id="mapTitle">São Paulo · PM2.5 µg/m³</h2></div>
+      <div class="map-overlay layers glass" role="group" aria-label="Map layers">
+        <label><input type="checkbox" data-layer="heat" checked> Pollution heatmap</label>
+        <label><input type="checkbox" data-layer="wind" checked> Wind (simulated)</label>
+        <label><input type="checkbox" data-layer="reports" checked> Citizen reports</label>
+        <label><input type="checkbox" data-layer="events" checked> Events</label>
+        <label><input type="checkbox" data-layer="labels" checked> Labels</label>
+      </div>
+      <div class="map-overlay legend glass" aria-label="Risk legend">
+        <div class="micro" style="margin-bottom:4px">Risk (WHO 2021 derived)</div>
+        <div class="row"><span class="dot" style="--c:var(--risk-good)"></span>Good ▾</div>
+        <div class="row"><span class="dot" style="--c:var(--risk-moderate)"></span>Moderate ◆</div>
+        <div class="row"><span class="dot" style="--c:var(--risk-poor)"></span>Poor ▲</div>
+        <div class="row"><span class="dot" style="--c:var(--risk-very_poor)"></span>Very poor ▲▲</div>
+        <div class="row"><span class="dot" style="--c:var(--risk-critical)"></span>Critical ⚠</div>
+        <div class="row"><span class="dot hollow" style="--c:var(--accent-secondary)"></span>Held for review</div>
+        <div class="row"><span class="dot off"></span>Offline / fault</div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="glass ai-card" id="aiCard">
+        <div class="hdr"><span class="micro">AI agent · anomaly detection</span><span class="pill valid" id="aiStatus">monitoring</span></div>
+        <div id="aiBody"><p class="muted">All sensors nominal. Waiting for anomalies…</p></div>
+      </div>
+      <div class="glass" id="eventMini" hidden></div>
+      <div class="glass feed-panel" style="display:flex;flex-direction:column">
+        <div class="panel-h"><span class="micro">AI agent activity feed</span><span class="mono dim" id="aiLatency"></span></div>
+        <div class="feed" id="feed" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVENTS -->
+  <section id="view-events" class="view"><div class="scroll"><div class="page">
+    <h1>Environmental events</h1>
+    <p class="lead">Events are created by the reasoning layer when AI anomalies, nearby sensors and citizen reports agree. Verified events are hashed with SHA-256 and anchored on-chain.</p>
+    <div class="grid g2" id="eventsGrid"></div>
+  </div></div></section>
+
+  <!-- ALERTS -->
+  <section id="view-alerts" class="view"><div class="scroll"><div class="page">
+    <h1>Alerts</h1>
+    <p class="lead">Public-health alerts from verified events and maintenance alerts from the sensor mesh (frozen firmware, calibration drift, connectivity).</p>
+    <div class="glass card tablewrap"><table class="t"><thead><tr><th>Status</th><th>Severity</th><th>Alert</th><th>Recommendation</th><th>Started</th><th>Ended</th></tr></thead><tbody id="alertsBody"></tbody></table></div>
+  </div></div></section>
+
+  <!-- CITIZENS -->
+  <section id="view-citizens" class="view"><div class="scroll"><div class="page">
+    <h1>Citizen signal network</h1>
+    <p class="lead">Residents report what they see, smell or feel. The AI correlates each report with nearby sensors using distance, timing, pollutant increase, wind direction and neighbour confirmation. Locations are rounded to ~110 m for privacy; no contact data is stored with the report.</p>
+    <div class="grid g2">
+      <form class="glass card grid" id="reportForm" style="gap:12px">
+        <span class="micro">Submit a report</span>
+        <div class="type-chips" id="typeChips" role="radiogroup" aria-label="Report type"></div>
+        <div id="reportMap" aria-label="Click the map to set the report location"></div>
+        <div class="grid g2" style="gap:10px">
+          <label class="f">Severity<select id="rSeverity"><option value="low">Low</option><option value="medium">Medium</option><option value="high" selected>High</option></select></label>
+          <label class="f">Location<input id="rLoc" class="mono" readonly value="-23.5460, -46.7440"></label>
+        </div>
+        <label class="f">What do you observe?<textarea id="rDesc" rows="2" maxlength="500" placeholder="e.g. Smoke from a vacant lot fire near the Jaguaré bridge"></textarea></label>
+        <button class="btn primary" type="submit">Send report →</button>
+        <div id="reportResult"></div>
+      </form>
+      <div class="glass card" style="display:flex;flex-direction:column;gap:10px">
+        <span class="micro">Report feed · AI correlation</span>
+        <div id="reportFeed" style="display:grid;gap:8px"></div>
+      </div>
+    </div>
+  </div></div></section>
+
+  <!-- LEDGER -->
+  <section id="view-ledger" class="view"><div class="scroll"><div class="page">
+    <h1>Trust ledger</h1>
+    <p class="lead">Only cryptographic fingerprints go on-chain, never raw data. Routine readings are grouped into Merkle batches (one transaction covers hundreds of readings, each still individually provable). Verified events and their peak readings get their own proofs.</p>
+    <div class="grid g4" id="ledgerKpis"></div>
+    <div class="glass card" style="margin-top:14px" id="ledgerInfo"></div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="glass card tablewrap"><span class="micro">Event proofs</span><table class="t"><thead><tr><th>Event</th><th>Hash</th><th>Block</th><th></th></tr></thead><tbody id="evProofs"></tbody></table></div>
+      <div class="glass card tablewrap"><span class="micro">Critical reading proofs</span><table class="t"><thead><tr><th>Reading</th><th>PM2.5</th><th>Block</th><th></th></tr></thead><tbody id="rdProofs"></tbody></table></div>
+    </div>
+    <div class="glass card tablewrap" style="margin-top:14px"><span class="micro">Merkle batches</span><table class="t"><thead><tr><th>#</th><th>Merkle root</th><th>Readings</th><th>Window</th><th>Block</th><th>Tx</th></tr></thead><tbody id="batches"></tbody></table></div>
+  </div></div></section>
+
+  <!-- VERIFY -->
+  <section id="view-verify" class="view"><div class="scroll"><div class="page">
+    <h1>Public verification portal</h1>
+    <p class="lead">Anyone can check that a reading or event was not altered after it was recorded. The portal recomputes the SHA-256 hash from the stored data and asks the smart contract whether that exact fingerprint was anchored.</p>
+    <div class="verify-hero">
+      <div class="glass card grid" style="gap:12px;align-content:start">
+        <div class="grid g2" style="gap:10px">
+          <label class="f">Record type<select id="vKind"><option value="reading">Reading</option><option value="event">Environmental event</option></select></label>
+          <label class="f">Reading id or event code<input id="vId" class="mono" placeholder="e.g. 15583 or EV-20261012-003"></label>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn primary" id="vBtn">Verify integrity</button>
+          <button class="btn" id="vLatest">Use latest anomaly</button>
+          <button class="btn" id="vLatestEvent">Use latest verified event</button>
+        </div>
+        <div id="vVerdict"></div>
+        <ul class="steps" id="vSteps"></ul>
+      </div>
+      <div class="glass card grid" style="gap:12px;align-content:start">
+        <span class="micro">Evidence</span>
+        <div id="vEvidence" class="muted">Run a verification to see the canonical payload, hashes and the on-chain proof.</div>
+        <div id="tamperBox" class="glass card" style="background:rgba(255,45,85,.05);border-color:rgba(255,45,85,.3)">
+          <span class="micro" style="color:#ffb3c1">Integrity-failure demonstration (admin)</span>
+          <p class="muted" style="font-size:12.5px;margin:6px 0 10px">Simulates an attacker with database access silently editing the stored record. The on-chain proof cannot be changed, so verification fails.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn danger" id="tamperBtn">Tamper with this record</button><button class="btn" id="restoreBtn" disabled>Restore original</button></div>
+        </div>
+      </div>
+    </div>
+  </div></div></section>
+
+  <!-- SIMULATOR -->
+  <section id="view-simulator" class="view"><div class="scroll"><div class="page">
+    <h1>Scenario simulator</h1>
+    <p class="lead">Inject controlled events into the simulated sensor mesh and watch the AI react on the command center. Requires an operator or admin session.</p>
+    <div class="grid g3" id="scenarioGrid"></div>
+  </div></div></section>
+
+  <!-- RESEARCH -->
+  <section id="view-research" class="view"><div class="scroll"><div class="page">
+    <h1>Research API &amp; open data</h1>
+    <p class="lead">Every reading carries its AI status, confidence score and integrity proof, so researchers can choose between raw data and AI-trusted "official" data, and verify any record independently.</p>
+    <div class="grid g3">
+      <a class="glass card hover" href="/docs.html" target="_blank" style="text-decoration:none;color:inherit"><span class="micro">Swagger / OpenAPI</span><h3 style="font-family:var(--font-display);margin:6px 0 4px">Interactive API docs →</h3><p class="muted" style="margin:0;font-size:12.5px">26 documented endpoints with JWT and device-key auth.</p></a>
+      <a class="glass card hover" href="/api/export/readings.csv?days=7&official=true" style="text-decoration:none;color:inherit"><span class="micro">Export</span><h3 style="font-family:var(--font-display);margin:6px 0 4px">CSV · 7 days, AI-trusted →</h3><p class="muted" style="margin:0;font-size:12.5px">Valid + confirmed-anomalous readings with hashes and batch ids.</p></a>
+      <a class="glass card hover" href="/api/export/readings.json?days=1" target="_blank" style="text-decoration:none;color:inherit"><span class="micro">Export</span><h3 style="font-family:var(--font-display);margin:6px 0 4px">JSON · 24 h, raw →</h3><p class="muted" style="margin:0;font-size:12.5px">All readings including suspicious and faulty ones, labelled.</p></a>
+    </div>
+    <div class="glass card" style="margin-top:14px"><span class="micro">Quick start</span><pre class="code" id="curlBox"></pre></div>
+  </div></div></section>
+
+  <!-- ADMIN -->
+  <section id="view-admin" class="view"><div class="scroll"><div class="page">
+    <h1>Admin console</h1>
+    <p class="lead">Sensors, users, thresholds and system health. Requires an admin session.</p>
+    <div id="adminBody" class="grid" style="gap:14px"></div>
+  </div></div></section>
+</main>
+
+<footer id="telemetry" aria-label="Telemetry bar">
+  <span>SYS <b id="tSys">●</b></span>
+  <span>AI <b id="tAi">–</b></span>
+  <span>LEDGER <b id="tLedger">–</b></span>
+  <span>ANCHORED <b id="tAnch">–</b></span>
+  <div class="ticker"><div id="ticker"></div></div>
+  <span id="tClock" class="mono"></span>
+</footer>
+
+<aside id="drawer" aria-label="Sensor detail" aria-hidden="true">
+  <div class="dh"><div><span class="micro" id="dKicker">Sensor</span><h2 id="dTitle">–</h2><div class="muted" id="dSub" style="font-size:12px"></div></div><button class="btn small" id="dClose" aria-label="Close sensor detail">✕</button></div>
+  <div class="db" id="dBody"></div>
+</aside>
+
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle"><div class="box glass" id="mBox"></div></div>
+<div id="palette" role="dialog" aria-modal="true" aria-label="Command palette"><div class="box glass"><input id="pInput" placeholder="Type a command… (sensor, scenario, view)"><ul id="pList"></ul></div></div>
+<div id="toasts" aria-live="assertive"></div>
+
+<script src="/vendor/leaflet/leaflet.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
