@@ -30,7 +30,7 @@ const GLOSSARY = {
   anomaly: { en: "Anomaly score (0–100): how unusual the air is compared with this sensor's history, its typical value for this hour and a multivariate Isolation Forest. High anomaly + high confidence = real pollution event; high anomaly + low confidence = probable glitch.", pt: "Anomaly score (0–100): o quanto o ar está fora do normal comparado ao histórico do sensor, ao valor típico da hora e a uma Isolation Forest. Anomalia alta + confiança alta = poluição real; anomalia alta + confiança baixa = provável defeito." },
   drift: { en: "Calibration drift: a sensor slowly starts over- or under-reading. AirTrust compares each sensor with its neighbours against the ratio it had when calibrated; above 1.25× it is flagged for recalibration.", pt: "Descalibração (drift): o sensor começa a medir a mais ou a menos aos poucos. O AirTrust compara cada sensor com os vizinhos contra a proporção que tinha quando calibrado; acima de 1,25× ele é marcado para recalibrar." },
   blockchain: { en: "Blockchain proofs: AirTrust never puts raw data on-chain, only SHA-256 fingerprints. Every 30 s all new readings are combined into one Merkle root (one transaction, each reading still provable). Verified events and their peak readings get individual proofs. If anyone later edits the database, the recomputed fingerprint no longer matches and verification fails.", pt: "Provas na blockchain: o AirTrust nunca grava dados brutos na blockchain, só impressões digitais SHA-256. A cada 30 s todas as leituras novas viram uma raiz Merkle (uma transação, cada leitura continua comprovável). Eventos verificados e suas leituras de pico ganham provas individuais. Se alguém editar o banco depois, a impressão recalculada não bate e a verificação falha." },
-  simulated: { en: "All sensor data in this prototype is simulated (12 virtual sensors at real São Paulo locations) and labelled as such. Real gateways can send data to POST /api/readings.", pt: "Todos os dados de sensores deste protótipo são simulados (12 sensores virtuais em locais reais de São Paulo) e rotulados assim. Gateways reais podem enviar dados para POST /api/readings." },
+  simulated: { en: "All sensor data in this prototype is simulated (12 virtual sensors at real Istanbul locations) and labelled as such. Real gateways can send data to POST /api/readings.", pt: "Todos os dados de sensores deste protótipo são simulados (12 sensores virtuais em locais reais de Istambul) e rotulados assim. Gateways reais podem enviar dados para POST /api/readings." },
 };
 
 const ADVICE = {
@@ -74,7 +74,7 @@ function snapshot(core, db, ledgerStatus) {
 function contextText(snap) {
   const f = (v, d = 1) => (v == null ? "n/a" : Number(v).toFixed(d));
   const lines = [];
-  lines.push(`Snapshot time (UTC): ${snap.at}. City: São Paulo (pilot). ALL SENSOR DATA IS SIMULATED.`);
+  lines.push(`Snapshot time (UTC): ${snap.at}. City: Istanbul, Türkiye (pilot). Times in the city are TRT (UTC+3). ALL SENSOR DATA IS SIMULATED.`);
   lines.push(`Running scenarios: ${snap.scenarios.join(", ") || "none"}.`);
   lines.push("SENSORS (code | district | status | PM2.5 | PM10 | NO2 | O3 µg/m³ | temp °C | AI status | confidence | anomaly | risk level | AI explanation):");
   for (const s of snap.sensors) lines.push(`- ${s.code} | ${s.district} (${s.name}) | ${s.status} | ${f(s.pm25)} | ${f(s.pm10)} | ${f(s.no2, 0)} | ${f(s.o3, 0)} | ${f(s.temperature)} | ${s.ai_status ?? "no live data"} | ${s.confidence ?? "-"} | ${s.anomaly ?? "-"} | ${s.level ?? "-"} | ${s.explanation ?? ""}`);
@@ -91,7 +91,7 @@ function contextText(snap) {
 
 const SYSTEM_PROMPT = `You are "AirTrust AI", the assistant embedded in AirTrust, a Climate Intelligence OS for verifiable air-quality monitoring (IEEE ClimateChain Global Hackathon 2026 prototype).
 
-How AirTrust works: (1) 12 low-cost IoT sensors in São Paulo send PM2.5, PM10, NO2, O3, temperature, humidity and wind every 5 s — SIMULATED in this prototype. (2) An explainable AI checks every reading (physical limits, z-score vs 24 h history, moving average, typical value for the hour, spatial consensus with neighbours, Isolation Forest, stuck-value and calibration-drift detection) and gives an anomaly score and a confidence score. (3) Citizens report smoke/dust/odor/traffic/heat; the AI scores each report 0–100 against nearby sensors. (4) Corroborated anomalies become environmental events; an event is verified at ≥80% confidence, hashed with SHA-256, anchored on a blockchain (AirTrustLedger.sol) and a public alert is issued. (5) Anyone can verify a record in the Verify tab: the portal recomputes the hash and asks the smart contract; edited records fail.
+How AirTrust works: (1) 12 low-cost IoT sensors in Istanbul, Türkiye send PM2.5, PM10, NO2, O3, temperature, humidity and wind every 5 s — SIMULATED in this prototype. (2) An explainable AI checks every reading (physical limits, z-score vs 24 h history, moving average, typical value for the hour, spatial consensus with neighbours, Isolation Forest, stuck-value and calibration-drift detection) and gives an anomaly score and a confidence score. (3) Citizens report smoke/dust/odor/traffic/heat; the AI scores each report 0–100 against nearby sensors. (4) Corroborated anomalies become environmental events; an event is verified at ≥80% confidence, hashed with SHA-256, anchored on a blockchain (AirTrustLedger.sol) and a public alert is issued. (5) Anyone can verify a record in the Verify tab: the portal recomputes the hash and asks the smart contract; edited records fail.
 
 Tabs: ${Object.values(GUIDE).map((g) => g.en).join(" ")}
 
@@ -100,7 +100,7 @@ Thresholds (WHO 2021 derived, configurable): PM2.5 good ≤15, moderate ≤25, p
 Rules:
 - Answer ONLY from the LIVE DATA below and the description above. Never invent sensors, numbers, places or events. If the data does not contain the answer, say so.
 - Always remind that sensor data is simulated when giving health-related answers, and give general guidance only (not medical advice).
-- Reply in the same language the user writes in (Portuguese or English). Be concise: short paragraphs or bullet points, max ~180 words unless asked for detail.
+- Reply in the same language the user writes in (English, Turkish or Portuguese). Be concise: short paragraphs or bullet points, max ~180 words unless asked for detail.
 - When useful, tell the user which tab to open or which button to click.`;
 
 // ---------------------------------------------------------------------------- LLM mode
@@ -134,11 +134,11 @@ async function askLLM(messages, ctx) {
 
 // ------------------------------------------------------------------------ offline mode
 const PT_HINT = /[ãõçáéíóúâêô]|\b(o que|qual|quais|como|onde|est[aá]|agora|ar |seguro|posso|correr|sensor(es)? |evento|alerta|aba|explica|funciona|para que|por ?que|hoje|bairro|previs[aã]o|ajuda|oi|ol[aá])\b/i;
-const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const norm = (s) => s.toLocaleLowerCase("tr").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ı/g, "i");
 
 function localAnswer(question, snap) {
-  // Place names (Jaguaré, Butantã, São Paulo…) contain accents, so remove them before guessing the language.
-  let bare = question.replace(/s[ãa]o paulo/gi, "");
+  // Place names (Bağcılar, Başakşehir, Şişli…) contain accents, so remove them before guessing the language.
+  let bare = question.replace(/[İi]stanbul|[İi]stambul|t[üu]rk[iı]ye|turquia/gi, "");
   for (const s of snap.sensors) for (const w of `${s.district} ${s.name}`.split(/\s+/)) if (w.length > 3) bare = bare.split(w).join("");
   const pt = PT_HINT.test(bare);
   const L = pt ? "pt" : "en";
@@ -199,7 +199,7 @@ function localAnswer(question, snap) {
     const worst = live.filter((s) => s.ai_status === "valid" || s.ai_status === "anomalous").sort((a, b) => LEVEL_RANK[b.level] - LEVEL_RANK[a.level])[0];
     if (!worst) return t("No live sensor data right now.", "Sem dados de sensores ao vivo agora.");
     return t(`City-wide, the worst trusted reading is ${worst.code} (${worst.district}): air **${lvlName.en[worst.level]}**.`, `Na cidade, a pior leitura confiável agora é ${worst.code} (${worst.district}): ar **${lvlName.pt[worst.level]}**.`) +
-      `\n\n${ADVICE[worst.level][L]}\n\n${t("Tell me your neighbourhood (e.g. Pinheiros, Mooca) for a local answer.", "Me diga seu bairro (ex.: Pinheiros, Mooca) para uma resposta local.")}\n\n${disclaimer}`;
+      `\n\n${ADVICE[worst.level][L]}\n\n${t("Tell me your neighbourhood (e.g. Beşiktaş, Kadıköy) for a local answer.", "Me diga seu bairro (ex.: Beşiktaş, Kadıköy) para uma resposta local.")}\n\n${disclaimer}`;
   }
 
   // Forecast
@@ -227,12 +227,12 @@ function localAnswer(question, snap) {
   }
 
   // Status overview (default for "now" questions)
-  if (/agora|now|status|situac|resumo|summary|como esta|how is|qualidade|quality|ar de sao paulo|overview|acontec|happening/.test(q) || q.length < 25) {
+  if (/agora|now|status|situac|resumo|summary|como esta|how is|qualidade|quality|overview|acontec|happening|hava|durum|nasil|simdi/.test(q) || q.length < 25) {
     const online = snap.sensors.filter((s) => s.status !== "offline").length;
     const ranked = live.filter((s) => s.level).sort((a, b) => (b.pm25 || 0) - (a.pm25 || 0));
     const act = snap.events.filter((e) => e.active && e.status !== "dismissed");
     return [
-      t(`**São Paulo right now** (${online}/${snap.sensors.length} sensors online, simulated data):`, `**São Paulo agora** (${online}/${snap.sensors.length} sensores online, dados simulados):`),
+      t(`**Istanbul right now** (${online}/${snap.sensors.length} sensors online, simulated data):`, `**Istambul agora** (${online}/${snap.sensors.length} sensores online, dados simulados):`),
       ranked[0] ? t(`- Highest PM2.5: ${ranked[0].code} · ${ranked[0].district} ${f(ranked[0].pm25)} µg/m³ (overall air: ${lvlName.en[ranked[0].level]})`, `- Maior PM2.5: ${ranked[0].code} · ${ranked[0].district} ${f(ranked[0].pm25)} µg/m³ (ar no geral: ${lvlName.pt[ranked[0].level]})`) : "",
       ranked.at(-1) ? t(`- Cleanest: ${ranked.at(-1).code} · ${ranked.at(-1).district} ${f(ranked.at(-1).pm25)} µg/m³`, `- Mais limpo: ${ranked.at(-1).code} · ${ranked.at(-1).district} ${f(ranked.at(-1).pm25)} µg/m³`) : "",
       act.length ? t(`- Ongoing event: **${act[0].title}** (${act[0].status}, ${Math.round(act[0].confidence_score)}%)`, `- Evento em andamento: **${act[0].title}** (${act[0].status}, ${Math.round(act[0].confidence_score)}%)`) : t("- No ongoing pollution event", "- Nenhum evento de poluição em andamento"),
@@ -242,8 +242,8 @@ function localAnswer(question, snap) {
   }
 
   return t(
-    "I can answer from AirTrust's live data. Try:\n- \"What's happening right now?\"\n- \"Is it safe to run in Pinheiros?\"\n- \"Why is AT-010 flagged?\"\n- \"What does each tab do?\"\n- \"How does the blockchain verification work?\"\n- \"What is PM2.5?\"",
-    "Eu respondo com os dados ao vivo do AirTrust. Tente:\n- \"O que está acontecendo agora?\"\n- \"É seguro correr em Pinheiros?\"\n- \"Por que o AT-010 está marcado?\"\n- \"O que faz cada aba?\"\n- \"Como funciona a verificação na blockchain?\"\n- \"O que é PM2.5?\"");
+    "I can answer from AirTrust's live data. Try:\n- \"What's happening right now?\"\n- \"Is it safe to run in Beşiktaş?\"\n- \"Why is AT-010 flagged?\"\n- \"What does each tab do?\"\n- \"How does the blockchain verification work?\"\n- \"What is PM2.5?\"",
+    "Eu respondo com os dados ao vivo do AirTrust. Tente:\n- \"O que está acontecendo agora?\"\n- \"É seguro correr em Beşiktaş?\"\n- \"Por que o AT-010 está marcado?\"\n- \"O que faz cada aba?\"\n- \"Como funciona a verificação na blockchain?\"\n- \"O que é PM2.5?\"");
 }
 
 function status() {

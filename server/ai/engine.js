@@ -18,7 +18,7 @@ const LABEL = { pm25: "PM2.5", pm10: "PM10", no2: "NO2", o3: "O3" };
 const LEVELS = ["good", "moderate", "poor", "very_poor", "critical"];
 const clamp = (v, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, v));
 const median = (a) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
-const localHour = (t) => (new Date(t).getUTCHours() + 21) % 24; // UTC-3
+const localHour = (t) => (new Date(t).getUTCHours() + config.city.utcOffset + 24) % 24; // pilot city local time
 
 function levelFor(pollutant, value, thresholds = config.thresholds) {
   const t = thresholds[pollutant];
@@ -58,6 +58,23 @@ class ClimateEngine {
   train(readings) {
     const valid = readings.filter((r) => r.pm25 != null).map(features);
     if (valid.length > 50) this.forest.fit(valid);
+    // Seed each sensor's hour-of-day profile from the clean training window (median per hour), so
+    // regular peaks such as rush hour are learned as "typical" instead of being flagged forever.
+    const buckets = {};
+    for (const r of readings) {
+      const code = r.sensor_id || r.sensor_code;
+      const t = Date.parse(r.timestamp || r.captured_at);
+      if (!this.mem[code] || Number.isNaN(t)) continue;
+      const k = `${code}|${localHour(t)}`;
+      (buckets[k] = buckets[k] || []).push(r);
+    }
+    for (const [k, rows] of Object.entries(buckets)) {
+      const [code, hour] = k.split("|");
+      for (const p of POLLUTANTS) {
+        const v = median(rows.map((r) => r[p]).filter((x) => x != null));
+        if (v != null) this.mem[code].profile[p][Number(hour)] = v;
+      }
+    }
   }
 
   typical(code, pollutant, hour, fallback) {
@@ -114,7 +131,9 @@ class ClimateEngine {
     const nbs = m.neighbors.map((n) => ({ ...n, latest: this.mem[n.code].latest }))
       .filter((n) => n.latest && t - n.latest.t < 180_000 && !["sensor_fault", "invalid"].includes(n.latest.status));
     const nbRel = median(nbs.map((n) => n.latest.rel));
-    const elevated = (n) => n.latest.rel > 1.4 || (n.latest.rel > 1.25 && n.latest.excess > 6);
+    // A neighbour confirms only if its own rise is proportionate: a 40x spike next to a +30% neighbour is not a plume.
+    const needRel = Math.max(1.25, 1 + (relSelf.rel - 1) * 0.12);
+    const elevated = (n) => (n.latest.rel > Math.max(1.4, needRel)) || (n.latest.rel > needRel && n.latest.excess > 6);
     const confirming = relSelf.rel > 1.45 ? nbs.filter(elevated) : [];
     const divergence = nbRel ? Math.abs(Math.log(relSelf.rel / nbRel)) : 0;
     let spatial = nbs.length ? clamp(100 - Math.max(0, divergence - 0.35) * 70) : 70;

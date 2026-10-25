@@ -60,7 +60,7 @@
         </div>
       </div>
       <div class="glass" style="flex:1 1 auto;display:flex;flex-direction:column">
-        <div class="panel-h"><span class="micro">Sensor mesh · São Paulo</span><span class="mono dim" id="meshCount"></span></div>
+        <div class="panel-h"><span class="micro">Sensor mesh · Istanbul</span><span class="mono dim" id="meshCount"></span></div>
         <div class="filters" role="group" aria-label="Pollutant shown">
           <button class="chip on" data-pol="pm25">PM2.5</button><button class="chip" data-pol="pm10">PM10</button>
           <button class="chip" data-pol="no2">NO₂</button><button class="chip" data-pol="o3">O₃</button><button class="chip" data-pol="temperature">Temp</button>
@@ -70,10 +70,10 @@
     </div>
 
     <div id="mapwrap">
-      <div id="map" role="application" aria-label="Environmental map of São Paulo with sensor markers"></div>
+      <div id="map" role="application" aria-label="Environmental map of Istanbul with sensor markers"></div>
       <div class="radar" aria-hidden="true"></div>
       <div class="map-vignette" aria-hidden="true"></div>
-      <div class="map-overlay map-title glass"><span class="micro">Atmosphere command center</span><h2 id="mapTitle">São Paulo · PM2.5 µg/m³</h2><button class="btn small" id="mapHelp" style="margin-top:6px" aria-label="How to read this screen">ⓘ How to read this screen</button></div>
+      <div class="map-overlay map-title glass"><span class="micro">Atmosphere command center</span><h2 id="mapTitle">Istanbul · PM2.5 µg/m³</h2><button class="btn small" id="mapHelp" style="margin-top:6px" aria-label="How to read this screen">ⓘ How to read this screen</button></div>
       <div class="map-overlay layers glass" role="group" aria-label="Map layers">
         <label><input type="checkbox" data-layer="heat" checked> Pollution heatmap</label>
         <label><input type="checkbox" data-layer="wind" checked> Wind (simulated)</label>
@@ -134,9 +134,9 @@
         <div id="reportMap" aria-label="Click the map to set the report location"></div>
         <div class="grid g2" style="gap:10px">
           <label class="f">Severity<select id="rSeverity"><option value="low">Low</option><option value="medium">Medium</option><option value="high" selected>High</option></select></label>
-          <label class="f">Location<input id="rLoc" class="mono" readonly value="-23.5460, -46.7440"></label>
+          <label class="f">Location<input id="rLoc" class="mono" readonly value="41.0720, 28.7960"></label>
         </div>
-        <label class="f">What do you observe?<textarea id="rDesc" rows="2" maxlength="500" placeholder="e.g. Smoke from a vacant lot fire near the Jaguaré bridge"></textarea></label>
+        <label class="f">What do you observe?<textarea id="rDesc" rows="2" maxlength="500" placeholder="e.g. Smoke from a grass fire next to the İkitelli industrial zone"></textarea></label>
         <button class="btn primary" type="submit">Send report →</button>
         <div id="reportResult"></div>
       </form>
@@ -244,7 +244,7 @@
   <header><div><b>AirTrust AI</b><div class="micro" id="aiMode">connecting…</div></div><button class="btn small" id="aiClose" aria-label="Close assistant">✕</button></header>
   <div id="aiMsgs" role="log" aria-live="polite"></div>
   <div id="aiChips"></div>
-  <form id="aiForm"><input id="aiInput" placeholder="Ask anything… (English or Português)" autocomplete="off" maxlength="1000" aria-label="Your question"><button class="btn primary" type="submit" aria-label="Send">➤</button></form>
+  <form id="aiForm"><input id="aiInput" placeholder="Ask anything… (English, Türkçe or Português)" autocomplete="off" maxlength="1000" aria-label="Your question"><button class="btn primary" type="submit" aria-label="Send">➤</button></form>
 </section>
 
 <script src="/vendor/leaflet/leaflet.js"></script>

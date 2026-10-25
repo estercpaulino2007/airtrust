@@ -156,6 +156,8 @@ class AirTrust extends EventEmitter {
     const ratio = r.pm25 / Math.max(r.pm10, 1);
     if (r.temperature >= 32 && r.wind_speed < 1.3) return "heatwave";
     if (reportTypes.includes("smoke") || reportTypes.includes("burning")) if (ratio > 0.45) return "wildfire_smoke";
+    if ((reportTypes.includes("industrial") || reportTypes.includes("odor")) && r.no2 > 50) return "industrial_emission";
+    if (sensor.profile === "industrial" && r.no2 > 100) return "industrial_emission";
     if (r.pm10 > 90 && ratio < 0.42) return "dust_event";
     if (r.no2 > 105) {
       const rush = (hour >= 6 && hour <= 10) || (hour >= 16 && hour <= 21);
@@ -180,7 +182,7 @@ class AirTrust extends EventEmitter {
     if (!ev) {
       const type = this.classify(r, sensor);
       const code = `EV-${r.captured_at.slice(0, 10).replace(/-/g, "")}-${String(this.db.prepare("SELECT COUNT(*) n FROM environmental_events").get().n + 1).padStart(3, "0")}`;
-      const title = `${EVENT_TITLES[type]} — ${type === "heatwave" ? "São Paulo" : sensor.district}`;
+      const title = `${EVENT_TITLES[type]} — ${type === "heatwave" ? config.city.name : sensor.district}`;
       timeline.push({ at: nowS, step: "sensor_reading", detail: `${r.sensor_code} ${a.checks.lead_pollutant.toUpperCase()} ${r[a.checks.lead_pollutant] ?? r.pm25}` });
       timeline.push({ at: nowS, step: "ai_anomaly", detail: `Anomaly ${a.anomaly_score}, confidence ${a.confidence_score}%` });
       const info = this.db.prepare(`INSERT INTO environmental_events (code, title, type, severity, description, ai_explanation, latitude, longitude, district,
@@ -227,7 +229,7 @@ class AirTrust extends EventEmitter {
     const sev = LEVELS[Math.max(SEV_RANK[ev.severity] ?? 0, SEV_RANK[a.severity] ?? 0)];
     const type = ev.type === "heatwave" ? "heatwave" : this.classify(r, this.byCode[ev.sensor_codes ? JSON.parse(ev.sensor_codes)[0] : r.sensor_code], reportTypes);
     const bestType = type === "unknown_anomaly" ? ev.type : type;
-    const title = `${EVENT_TITLES[bestType]} — ${bestType === "heatwave" ? "São Paulo" : ev.district}`;
+    const title = `${EVENT_TITLES[bestType]} — ${bestType === "heatwave" ? config.city.name : ev.district}`;
     const explanation = this.eventExplanation(ev, bestType, sensors, reports, confidence, r);
     this.db.prepare(`UPDATE environmental_events SET sensor_codes=?, confidence_score=?, severity=?, type=?, title=?, ai_explanation=?, description=?,
       peak_pm25=MAX(peak_pm25, ?), peak_pm10=MAX(peak_pm10, ?), timeline=? WHERE id=?`)
@@ -339,7 +341,8 @@ class AirTrust extends EventEmitter {
     const type = String(input.type || "").toLowerCase();
     if (!REPORT_TYPES[type]) throw Object.assign(new Error(`type must be one of ${Object.keys(REPORT_TYPES).join(", ")}`), { status: 400 });
     const lat = Number(input.latitude), lng = Number(input.longitude);
-    if (!(lat >= -24.1 && lat <= -23.2 && lng >= -47 && lng <= -46.2)) throw Object.assign(new Error("location must be inside the São Paulo monitoring area"), { status: 400 });
+    const B = config.city.bounds;
+    if (!(lat >= B.minLat && lat <= B.maxLat && lng >= B.minLng && lng <= B.maxLng)) throw Object.assign(new Error(`location must be inside the ${config.city.name} monitoring area`), { status: 400 });
     const severity = ["low", "medium", "high"].includes(input.severity) ? input.severity : "medium";
     const description = String(input.description || "").slice(0, 500);
     const photo = /^https?:\/\//.test(input.photo_url || "") ? input.photo_url : null;

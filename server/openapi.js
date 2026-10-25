@@ -31,7 +31,7 @@ module.exports = {
         type: "object", required: ["type", "latitude", "longitude"],
         properties: {
           type: { type: "string", enum: ["smoke", "burning", "dust", "industrial", "odor", "traffic", "heat"] },
-          latitude: { type: "number", example: -23.546 }, longitude: { type: "number", example: -46.744 },
+          latitude: { type: "number", example: 41.072 }, longitude: { type: "number", example: 28.796 },
           severity: { type: "string", enum: ["low", "medium", "high"] }, description: { type: "string", maxLength: 500 },
         },
       },

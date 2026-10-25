@@ -70,7 +70,7 @@ async function boot() {
   try { health = await api("/api/health"); } catch {}
   const steps = [
     () => add("Establishing telemetry uplink", "OK"),
-    () => add(`Sensor mesh · São Paulo`, health ? `${health.sensors_online}/${health.sensors_total} ONLINE` : "UNREACHABLE", health ? "ok" : "warn"),
+    () => add(`Sensor mesh · Istanbul`, health ? `${health.sensors_online}/${health.sensors_total} ONLINE` : "UNREACHABLE", health ? "ok" : "warn"),
     () => add("AI climate engine · 7 detection methods", health ? `ACTIVE · ${health.ai_latency_ms} ms` : "STANDBY", health ? "ok" : "warn"),
     () => add("Trust ledger · AirTrustLedger.sol", health?.ledger?.connected ? `CONNECTED · BLOCK #${health.ledger.block}` : "OFFLINE", health?.ledger?.connected ? "ok" : "warn"),
     () => add("Data provenance", "SIMULATED · LABELLED", "warn"),
@@ -84,7 +84,7 @@ async function boot() {
 // ---------------------------------------------------------------------- map
 let map, markers = {}, heat = {}, wind = {}, reportLayer, eventLayer;
 function initMap() {
-  map = L.map("map", { zoomControl: true, attributionControl: true, zoomSnap: 0.25, zoomDelta: 0.5 }).setView([-23.565, -46.66], 11.4);
+  map = L.map("map", { zoomControl: true, attributionControl: true, zoomSnap: 0.25, zoomDelta: 0.5 }).setView([41.03, 28.97], 10.5);
   addBasemap(map);
   reportLayer = L.layerGroup().addTo(map);
   eventLayer = L.layerGroup().addTo(map);
@@ -382,7 +382,7 @@ function renderAlerts() {
 }
 
 // ---------------------------------------------------------------- citizens
-let reportMap, reportPin, rType = "smoke", rLat = -23.546, rLng = -46.744;
+let reportMap, reportPin, rType = "smoke", rLat = 41.072, rLng = 28.796;
 const RTYPES = [["smoke", "☁ Smoke"], ["burning", "🔥 Burning"], ["dust", "≋ Dust"], ["industrial", "🏭 Industrial"], ["odor", "👃 Odor"], ["traffic", "🚗 Traffic"], ["heat", "🌡 Heat"]];
 function initReportForm() {
   $("#typeChips").innerHTML = RTYPES.map(([k, l]) => `<button type="button" role="radio" aria-checked="${k === rType}" class="${k === rType ? "on" : ""}" data-type="${k}">${l}</button>`).join("");
@@ -483,7 +483,7 @@ async function trigger(id) {
   if (!S.user || !["operator", "admin"].includes(S.user.role)) { openLogin("operator@airtrust.demo", () => trigger(id)); return; }
   try {
     await api(`/api/scenarios/${id}/trigger`, { method: "POST" });
-    toast("Scenario triggered", id === "burning" ? "Watch AT-007 (Jaguaré) on the command center" : label(id), "info");
+    toast("Scenario triggered", id === "burning" ? "Watch AT-007 (İkitelli) on the command center" : label(id), "info");
     loadScenarios();
     if (!["normal", "recovery"].includes(id)) setTimeout(() => showView("command"), 600);
   } catch (e) { toast("Could not trigger", e.message, "warning"); }
@@ -506,7 +506,7 @@ curl ${o}/api/verify/reading/1
 
 # Submit a citizen report (anonymous)
 curl -X POST ${o}/api/reports -H "Content-Type: application/json" \\
-  -d '{"type":"smoke","latitude":-23.546,"longitude":-46.744,"severity":"high"}'
+  -d '{"type":"smoke","latitude":41.072,"longitude":28.796,"severity":"high"}'
 
 # Ingest a reading from a real device gateway
 curl -X POST ${o}/api/readings -H "X-Device-Key: demo-device-key" -H "Content-Type: application/json" \\
@@ -661,7 +661,7 @@ async function init() {
   fitSensors(); refreshLive(); renderReportsOnMap(); renderEventsOnMap(); renderEventMini(); renderAlerts(); renderUser(); initReportForm();
   updateEvBadge();
   connectWs(); refreshStats(); setInterval(refreshStats, 5000);
-  setInterval(() => { $("#tClock").textContent = new Date().toLocaleTimeString() + " BRT"; }, 1000);
+  setInterval(() => { $("#tClock").textContent = new Date().toLocaleTimeString("en-GB", { timeZone: "Europe/Istanbul" }) + " TRT"; }, 1000);
   setInterval(() => { if (tickerItems.length) $("#ticker").textContent = tickerItems.join("   ◆   "); }, 6000);
 
   // events
@@ -669,7 +669,7 @@ async function init() {
   $("#sensorList").addEventListener("click", (e) => { const r = e.target.closest(".sensor-row"); if (r) openSensor(r.dataset.code); });
   $$(".filters .chip").forEach((c) => c.addEventListener("click", () => {
     S.pol = c.dataset.pol; $$(".filters .chip").forEach((x) => x.classList.toggle("on", x === c));
-    $("#mapTitle").textContent = `São Paulo · ${POL_LABEL[S.pol]} ${UNITS[S.pol]}`; refreshLive();
+    $("#mapTitle").textContent = `Istanbul · ${POL_LABEL[S.pol]} ${UNITS[S.pol]}`; refreshLive();
   }));
   $$(".layers input").forEach((i) => i.addEventListener("change", () => { S.layers[i.dataset.layer] = i.checked; refreshLive(); renderReportsOnMap(); renderEventsOnMap(); }));
   $("#dClose").onclick = () => { $("#drawer").classList.remove("open"); $("#drawer").setAttribute("aria-hidden", "true"); S.selected = null; renderSensorList(); };

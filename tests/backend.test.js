@@ -101,10 +101,10 @@ test("citizen report near an active plume correlates strongly and links to the e
   const ctx = setup();
   ctx.sim.trigger("burning", Date.now());
   runLive(ctx, 60);
-  const rep = ctx.core.createReport({ type: "smoke", latitude: -23.546, longitude: -46.744, severity: "high", created_at: new Date(ctx.now()).toISOString(), quiet: true });
+  const rep = ctx.core.createReport({ type: "smoke", latitude: 41.072, longitude: 28.796, severity: "high", created_at: new Date(ctx.now()).toISOString(), quiet: true });
   assert.ok(rep.ai_correlation_score >= 60, `score ${rep.ai_correlation_score}`);
   assert.ok(["strong_correlation", "probable_correlation"].includes(rep.correlation_status));
-  const far = ctx.core.createReport({ type: "smoke", latitude: -23.54, longitude: -46.46, severity: "high", created_at: new Date(ctx.now()).toISOString(), quiet: true });
+  const far = ctx.core.createReport({ type: "smoke", latitude: 40.88, longitude: 29.23, severity: "high", created_at: new Date(ctx.now()).toISOString(), quiet: true });
   assert.ok(far.ai_correlation_score < rep.ai_correlation_score);
   assert.equal(Math.round(rep.latitude * 1000), rep.latitude * 1000, "location rounded for privacy");
 });
@@ -121,7 +121,7 @@ test("SHA-256 hash changes when any hashed field changes", () => {
   const r = { sensor_code: "AT-007", captured_at: "2026-10-24T18:00:00.000Z", pm25: 92.47, pm10: 120, no2: 30, o3: 40, temperature: 24, humidity: 60, wind_speed: 2, wind_direction: 260 };
   assert.equal(hashReading(r), hashReading({ ...r }));
   assert.notEqual(hashReading(r), hashReading({ ...r, pm25: 36.99 }));
-  const e = { code: "EV-1", title: "x", type: "wildfire_smoke", severity: "critical", latitude: -23.5, longitude: -46.7, started_at: "a", sensor_codes: '["AT-007","AT-004"]', report_codes: "[]", confidence_score: 94, verified_at: "b" };
+  const e = { code: "EV-1", title: "x", type: "wildfire_smoke", severity: "critical", latitude: 41.07, longitude: 28.8, started_at: "a", sensor_codes: '["AT-007","AT-004"]', report_codes: "[]", confidence_score: 94, verified_at: "b" };
   assert.equal(hashEvent(e), hashEvent({ ...e, sensor_codes: '["AT-004","AT-007"]' }), "sensor order does not matter");
   assert.notEqual(hashEvent(e), hashEvent({ ...e, severity: "moderate" }));
 });
@@ -166,11 +166,11 @@ test("offline assistant answers from live data in English and Portuguese", () =>
   const assistant = require("../server/ai/assistant");
   const snap = assistant.snapshot(ctx.core, ctx.db, { connected: false });
   // snapshot freshness is based on wall-clock time; the live run ends ~now, so data is fresh
-  const en = assistant.localAnswer("Is it safe to go outside in Jaguaré?", snap);
+  const en = assistant.localAnswer("Is it safe to go outside in İkitelli?", snap);
   assert.match(en, /AT-007/);
   assert.match(en, /not medical advice/i);
   const pt = assistant.localAnswer("O que está acontecendo agora?", snap);
-  assert.match(pt, /São Paulo agora/);
+  assert.match(pt, /Istambul agora/);
   assert.match(pt, /Biomass smoke plume|Evento em andamento|evento/i);
   assert.match(assistant.localAnswer("What does each tab do?", snap), /Command Center/);
   assert.match(assistant.localAnswer("O que é PM2.5?", snap), /partículas finas/);

@@ -20,11 +20,11 @@ AirTrust is a climate-data verification platform built on IoT environmental moni
 Air pollution is among the largest environmental health risks, and the WHO cut its PM2.5 annual guideline in half in 2021. Low-cost sensors could fill the huge gaps between expensive reference stations, but their data is rarely trusted: calibration drifts, devices freeze, values spike, and nobody can prove a record wasn't changed later. We wanted a system where a resident, a researcher and a city agency can all look at the same evidence and trust it.
 
 ## What it does
-1. **Sense:** a mesh of 12 IoT sensors across São Paulo (simulated in this prototype) streams PM2.5, PM10, NO₂, O₃, temperature, humidity, wind, battery and signal every 5 s. Residents submit reports (smoke, burning, dust, industrial, odor, traffic, heat).
+1. **Sense:** a mesh of 12 IoT sensors across Istanbul, on both sides of the Bosphorus (simulated in this prototype) streams PM2.5, PM10, NO₂, O₃, temperature, humidity, wind, battery and signal every 5 s. Residents submit reports (smoke, burning, dust, industrial, odor, traffic, heat).
 2. **Understand:** an explainable AI engine checks every reading against physical limits, its own 24 h history (z-score, moving average), its 30-day hour-of-day profile, its neighbours (spatial consensus), a multivariate Isolation Forest, zero-variance (frozen firmware) and calibration drift. It outputs an **anomaly score**, a **confidence score**, a status and a plain-language explanation.
 3. **Reason:** corroborated anomalies become **environmental events** (biomass smoke, industrial emission, dust, traffic, heatwave) classified from pollutant signatures and wind; citizen reports are correlated (0–100) by distance, timing, pollutant increase, wind and neighbour confirmation. Events are verified at ≥ 80% confidence or dismissed.
 4. **Trust:** readings are hashed and anchored every 30 s as a Merkle root; verified events and their peak readings are anchored individually in `AirTrustLedger.sol`.
-5. **Explain:** a *How it works* page, a 2-minute guided demo with one-click steps, and an embedded **AI assistant** that answers questions ("Is it safe to run in Pinheiros?", "Why is AT-010 flagged?") in English or Portuguese, grounded in live data (bring-your-own-key LLM such as Groq's free tier, with an offline mode that needs no key).
+5. **Explain:** a *How it works* page, a 2-minute guided demo with one-click steps, and an embedded **AI assistant** that answers questions ("Is it safe to run in Beşiktaş?", "Why is AT-010 flagged?") in English, Turkish or Portuguese, grounded in live data (bring-your-own-key LLM such as Groq's free tier, with an offline mode that needs no key).
 6. **Act:** critical alerts with recommended actions, 1/3/6 h forecasts, maintenance alerts for faulty sensors, and a **public verification portal** where anyone can confirm (or disprove) the integrity of any record.
 
 ## How we built it
@@ -49,7 +49,7 @@ Air pollution is among the largest environmental health risks, and the WHO cut i
 Trust in climate data is two problems: *is the measurement right?* (AI, calibration, consensus) and *is the record unchanged?* (cryptography). Neither alone is enough.
 
 ## What's next
-Real sensor gateways and OpenAQ/CETESB reference stations for collaborative calibration; per-device signing keys; satellite fire/aerosol layers; SMS/push alerts and a mobile citizen app; city federation and a verifiable environmental-data marketplace; water, noise and urban-heat modules.
+Real sensor gateways and OpenAQ and Türkiye's national air-quality monitoring network reference stations for collaborative calibration; per-device signing keys; satellite fire/aerosol layers; SMS/push alerts and a mobile citizen app; city federation and a verifiable environmental-data marketplace; water, noise and urban-heat modules.
 
 ## Target users
 Residents and community groups · schools and universities · environmental NGOs · city governments and agencies · researchers and data scientists · journalists and civic-tech groups.

@@ -9,7 +9,9 @@ AirTrust turns fragmented environmental signals into **trusted, explainable and 
 
 ![AirTrust command center during a verified smoke event](docs/screenshot-command-center.png)
 
-> ⚠️ **All sensor data in this prototype is simulated** (12 virtual sensors at real São Paulo locations) and is labelled as simulated in the UI, the API and every export.
+> 📍 **Pilot city: Istanbul, Türkiye.** The engine is city-agnostic: neighbours, profiles and plumes are computed from each network's own sensor coordinates.
+
+> ⚠️ **All sensor data in this prototype is simulated** (12 virtual sensors at real Istanbul locations) and is labelled as simulated in the UI, the API and every export.
 
 ---
 
@@ -24,7 +26,7 @@ Air pollution is one of the largest environmental health risks; the WHO tightene
 
 | Pillar | What AirTrust does |
 |---|---|
-| **Sense** | 12-sensor IoT mesh (PM2.5, PM10, NO₂, O₃, temperature, humidity, wind, battery, signal, firmware) + citizen reports |
+| **Sense** | 12-sensor IoT mesh across Istanbul, on both sides of the Bosphorus (PM2.5, PM10, NO₂, O₃, temperature, humidity, wind, battery, signal, firmware) + citizen reports |
 | **Understand** | Explainable AI validates every reading, detects anomalies, cross-checks neighbours, forecasts 1/3/6 h and reasons about events |
 | **Trust** | SHA-256 fingerprints anchored on-chain: Merkle batches for every reading, individual proofs for verified events and critical readings |
 | **Act** | Alerts with recommended actions, public verification portal, open research API and exports |
@@ -163,8 +165,8 @@ All passwords: **`AirTrust2026!`**
 1. **Boot** → mission-control sequence checks sensors, AI engine and ledger.
 2. **Command Center** → live map, 11/12 sensors online (AT-011 offline), AT-010 flagged for calibration drift.
 3. **Sign in as admin** → *Scenario Simulator* → **Localized burning event**.
-4. Watch AT-007 (Jaguaré) rise; the AI first **holds it for review**, then AT-004 and AT-009 confirm and it becomes **anomalous at ~95% confidence** with an explanation.
-5. **Citizen Signals** → send a *Smoke* report near Jaguaré (default pin) → **strong correlation**.
+4. Watch AT-007 (İkitelli industrial zone) rise; the AI first **holds it for review**, then Bağcılar (AT-004) and Başakşehir (AT-009) confirm and it becomes **anomalous at ~95% confidence** with an explanation.
+5. **Citizen Signals** → send a *Smoke* report near İkitelli (default pin) → **strong correlation**.
 6. After ~60 s the event is **verified**, hashed, **anchored on-chain**, and a **critical alert** is issued. Timeline: reading → AI anomaly → spatial confirmation → citizen report → verified → blockchain proof → alert.
 7. **Verify** → *Use latest anomaly* → ✔ hash ✔ Merkle proof ✔ smart contract.
 8. **Tamper with this record** → the database value changes → **✕ Integrity check failed**. *Restore original* → verified again.
@@ -178,10 +180,10 @@ All passwords: **`AirTrust2026!`**
 - **How it works** tab: what AirTrust is and who it's for, the 5-step pipeline, what every tab does, how to read the map, a glossary and the demo accounts.
 - **Guided demo** (2 minutes, 9 steps): every step has a *do it for me* button and waits for the live system (e.g. "wait until neighbours confirm the fire"), ending with the tamper demo.
 - **"How to read this screen"** help on the command center.
-- **Ask AirTrust AI** (✦ button, bottom right): answers questions like *"Is it safe to run in Pinheiros?"*, *"Why is AT-010 flagged?"*, *"What does each tab do?"* in English or Portuguese, grounded in a live snapshot of sensors, events, alerts, reports and ledger status.
+- **Ask AirTrust AI** (✦ button, bottom right): answers questions like *"Is it safe to run in Beşiktaş?"*, *"Why is AT-010 flagged?"*, *"What does each tab do?"* in English, Turkish or Portuguese, grounded in a live snapshot of sensors, events, alerts, reports and ledger status.
   - **LLM mode** (bring-your-own-key): set `ASSISTANT_API_KEY` (e.g. a free [Groq](https://console.groq.com) key). The model receives the live snapshot and is instructed to answer only from it, never inventing data.
   ![Ask AirTrust AI answering in Portuguese from live data](docs/screenshot-assistant.png)
-  - **Offline mode** (default, no key): a deterministic bilingual assistant answers from the same live data, so the feature works for anyone who clones the repo. If the LLM provider fails, it falls back automatically.
+  - **Offline mode** (default, no key): a deterministic assistant (English/Portuguese) answers from the same live data, so the feature works for anyone who clones the repo. If the LLM provider fails, it falls back automatically.
 
 ## How the AI works
 
@@ -278,7 +280,7 @@ npm test
 
 ## Roadmap
 
-1. Real low-cost sensor gateways (MQTT) and OpenAQ / CETESB reference stations for collaborative calibration.
+1. Real low-cost sensor gateways (MQTT) and OpenAQ and Türkiye's national air-quality monitoring network (havaizleme.gov.tr) reference stations for collaborative calibration.
 2. Per-device signing keys (hardware-rooted) so readings are signed at the edge.
 3. Satellite fire and aerosol layers; meteorological dispersion models.
 4. SMS / push alerts and a mobile citizen app with photo evidence.

@@ -1,8 +1,9 @@
-// IoT sensor-mesh simulator. Produces physically plausible readings for São Paulo with diurnal
+// IoT sensor-mesh simulator. Produces physically plausible readings for Istanbul with diurnal
 // cycles, rush hours and photochemical ozone, plus controllable scenarios for the demo.
 // EVERYTHING produced here is simulated and stored with simulated = 1.
 const SENSORS = require("./sensors");
 const { distanceKm, bearingDeg } = require("./lib/geo");
+const config = require("./config");
 
 const PROFILE_BASE = {
   urban: { pm25: 15, no2: 32 },
@@ -24,13 +25,13 @@ const SCENARIOS = [
   { id: "normal", name: "Normal urban baseline", type: "baseline", duration_minutes: 0,
     description: "Clears every active scenario and returns the mesh to its normal diurnal pattern." },
   { id: "rush_hour", name: "Rush-hour traffic", type: "traffic", duration_minutes: 4, center: "AT-002", radiusKm: 6,
-    description: "NO2 and PM2.5 rise along Paulista Avenue and Marginal Tietê corridors." },
-  { id: "burning", name: "Localized burning event", type: "wildfire_smoke", duration_minutes: 5, center: "AT-007", radiusKm: 3.2,
-    description: "Biomass burning near Jaguaré. Smoke plume reaches Butantã (AT-004) and Lapa (AT-009)." },
-  { id: "industrial", name: "Industrial smoke", type: "industrial_emission", duration_minutes: 4, center: "AT-008", radiusKm: 2.5,
-    description: "Stack emission at Mooca rail yard: PM2.5 and NO2 spike together." },
+    description: "NO2 and PM2.5 rise around Mecidiyeköy junction (Şişli) and the Kadıköy waterfront." },
+  { id: "burning", name: "Localized burning event", type: "wildfire_smoke", duration_minutes: 5, center: "AT-007", radiusKm: 4,
+    description: "Grass and waste fire next to the İkitelli industrial zone. The smoke plume reaches Bağcılar (AT-004) and Başakşehir (AT-009)." },
+  { id: "industrial", name: "Industrial smoke", type: "industrial_emission", duration_minutes: 4, center: "AT-008", radiusKm: 3.5,
+    description: "Stack emission in the Dudullu industrial zone: PM2.5 and NO2 spike together." },
   { id: "dust", name: "Dust storm", type: "dust_event", duration_minutes: 4, center: "AT-010", radiusKm: 3,
-    description: "Strong winds lift coarse dust in the south zone: PM10 dominates PM2.5." },
+    description: "Strong winds lift construction dust in Halkalı (Küçükçekmece): PM10 dominates PM2.5." },
   { id: "heatwave", name: "Heatwave with stagnant air", type: "heatwave", duration_minutes: 5, center: null,
     description: "City-wide temperature +9 °C, wind drops, ozone and PM accumulate." },
   { id: "sensor_fault", name: "Faulty sensor (stuck value)", type: "sensor_fault", duration_minutes: 4, center: "AT-012",
@@ -42,7 +43,7 @@ const SCENARIOS = [
   { id: "spike", name: "Sudden isolated spike", type: "unknown_anomaly", duration_minutes: 0.3, center: "AT-005",
     description: "A single implausible PM2.5 burst with no neighbour confirmation (likely glitch)." },
   { id: "gradual", name: "Gradual pollution increase", type: "unknown_anomaly", duration_minutes: 6, center: "AT-001", radiusKm: 4,
-    description: "Slow, steady accumulation downtown: tests trend-based detection." },
+    description: "Slow, steady accumulation in the historic peninsula (Fatih): tests trend-based detection." },
   { id: "recovery", name: "Recovery after event", type: "baseline", duration_minutes: 0,
     description: "Ends active scenarios with a smooth decay back to baseline." },
 ];
@@ -101,7 +102,7 @@ class Simulator {
 
   baseline(sensor, t, st) {
     const d = new Date(t);
-    const h = d.getUTCHours() - 3 + d.getUTCMinutes() / 60; // São Paulo local time (UTC-3)
+    const h = d.getUTCHours() + config.city.utcOffset + d.getUTCMinutes() / 60; // pilot city local time
     const hour = (h + 24) % 24;
     const dow = d.getUTCDay();
     const weekend = dow === 0 || dow === 6 ? 0.78 : 1;
@@ -113,7 +114,7 @@ class Simulator {
     const temperature = 19 + 7 * Math.sin(((hour - 9) / 24) * 2 * Math.PI) + this.gauss() * 0.4;
     const humidity = Math.min(98, Math.max(25, 72 - (temperature - 19) * 3 + this.gauss() * 2));
     const wind_speed = Math.max(0.2, 2.4 + 1.2 * sun + this.gauss() * 0.5);
-    const wind_direction = (135 + 25 * Math.sin(t / 3.6e6) + this.gauss() * 10 + 360) % 360; // SE sea breeze
+    const wind_direction = (35 + 25 * Math.sin(t / 3.6e6) + this.gauss() * 10 + 360) % 360; // poyraz: prevailing north-easterly
 
     const pm25 = Math.max(2, base.pm25 * weekend * (1 + 0.55 * rush + night) * (1 - 0.06 * (wind_speed - 2.4)) + this.gauss() * 1.6);
     const pm10 = Math.max(4, pm25 * (1.65 + 0.15 * this.rand()) + this.gauss() * 2);

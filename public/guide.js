@@ -8,7 +8,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ============================================================== HOW IT WORKS
 const PIPELINE = [
-  ["📡", "Sense", "12 low-cost sensors across São Paulo send PM2.5, PM10, NO₂, O₃, temperature, humidity and wind every 5 seconds. Residents report what they see or smell."],
+  ["📡", "Sense", "12 low-cost sensors across Istanbul, on both sides of the Bosphorus, send PM2.5, PM10, NO₂, O₃, temperature, humidity and wind every 5 seconds. Residents report what they see or smell."],
   ["🧠", "Understand", "An explainable AI checks every reading: is it physically possible? unusual for this hour? do neighbouring sensors agree? is the sensor frozen or drifting? It gives each reading an anomaly score and a confidence score."],
   ["🔗", "Confirm", "When several sensors and citizen reports agree, the AI opens an environmental event (smoke, dust, industrial, traffic, heatwave) and verifies it at ≥ 80% confidence."],
   ["🔒", "Seal", "The evidence gets a SHA-256 fingerprint stored on a blockchain. Nobody, not even the database admin, can change it later without being caught."],
@@ -43,7 +43,7 @@ function renderGuide() {
   page.innerHTML = `
     <div class="hero glass">
       <div>
-        <span class="micro">Climate Intelligence OS · São Paulo pilot · simulated data</span>
+        <span class="micro">Climate Intelligence OS · Istanbul pilot · simulated data</span>
         <h1 style="font-size:34px;margin:8px 0 10px">Air-quality data you can <span class="grad">trust</span>.</h1>
         <p class="lead" style="margin-bottom:16px">Cheap sensors can cover a whole city, but their data is often doubted: they drift, freeze, glitch, and records can be altered. <b>AirTrust</b> checks every reading with explainable AI, confirms pollution events with neighbouring sensors and citizens, and seals the evidence on a blockchain so anyone can verify it.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -124,7 +124,7 @@ function welcome() {
     try { seen = localStorage.getItem("airtrust_welcome") === "1"; } catch {}
     if (seen || tour || $("#modal").classList.contains("open")) return;
     $("#mBox").innerHTML = `<span class="micro">Welcome to</span><h2 id="mTitle" style="font-family:var(--font-display);margin:2px 0 8px;font-size:26px">AirTrust</h2>
-      <p class="muted" style="margin:0 0 14px;line-height:1.55;font-size:13.5px">A command center that makes air-quality data <b style="color:var(--text-primary)">trustworthy</b>: sensors measure, citizens observe, AI explains, blockchain preserves. Everything you see is a <b style="color:var(--accent-warning)">simulated</b> pilot in São Paulo.</p>
+      <p class="muted" style="margin:0 0 14px;line-height:1.55;font-size:13.5px">A command center that makes air-quality data <b style="color:var(--text-primary)">trustworthy</b>: sensors measure, citizens observe, AI explains, blockchain preserves. Everything you see is a <b style="color:var(--accent-warning)">simulated</b> pilot in Istanbul.</p>
       <div class="grid" style="gap:8px">
         <button class="btn primary" id="wTour" style="justify-content:flex-start">▶ Take the 2-minute guided demo <span class="dim" style="margin-left:auto;font-size:11px">recommended</span></button>
         <button class="btn" id="wGuide" style="justify-content:flex-start">📖 Read how it works</button>
@@ -145,7 +145,7 @@ let tour = null;
 const STEPS = [
   {
     title: "The live map",
-    body: "Each dot is an air-quality sensor in São Paulo, colored by risk. Readings arrive every 5 seconds and the AI checks each one. Notice <b>AT-011</b> (grey): it's offline. And <b>AT-010</b> has a purple ring: the AI doesn't fully trust it.",
+    body: "Each dot is an air-quality sensor in Istanbul, colored by risk. Readings arrive every 5 seconds and the AI checks each one. Notice <b>AT-011</b> (grey): it's offline. And <b>AT-010</b> has a purple ring: the AI doesn't fully trust it.",
     action: "Show me", run: async () => { AT.showView("command"); },
   },
   {
@@ -155,19 +155,19 @@ const STEPS = [
   },
   {
     title: "Start a fire",
-    body: "Now let's simulate a real event: vegetation burning near <b>Jaguaré (AT-007)</b>. This signs you in as admin and starts the scenario.",
+    body: "Now let's simulate a real event: a grass and waste fire next to the <b>İkitelli industrial zone (AT-007)</b>. This signs you in as admin and starts the scenario.",
     action: "Start the fire", run: async () => {
       document.querySelector("#dClose")?.click();
       AT.fitSensors();
       await AT.loginAs("admin@airtrust.demo");
       await AT.api("/api/scenarios/burning/trigger", { method: "POST" });
-      AT.toast("Scenario started", "Vegetation fire near Jaguaré (AT-007)", "info");
+      AT.toast("Scenario started", "Fire next to İkitelli industrial zone (AT-007)", "info");
       AT.showView("command");
     },
   },
   {
     title: "Watch the AI confirm it",
-    body: "AT-007's PM2.5 is rising. A single sensor could just be a glitch, so the AI first <b>holds it for review</b>, then checks the neighbours downwind (Butantã AT-004, Lapa AT-009). When they rise too, the reading becomes <b>anomalous with high confidence</b>.",
+    body: "AT-007's PM2.5 is rising. A single sensor could just be a glitch, so the AI first <b>holds it for review</b>, then checks the neighbours downwind (Bağcılar AT-004, Başakşehir AT-009). When they rise too, the reading becomes <b>anomalous with high confidence</b>.",
     wait: () => { const r = AT.S.latest["AT-007"]; return r && r.ai_status === "anomalous" && (r.checks?.neighbours_confirming || []).length > 0; },
     live: () => { const r = AT.S.latest["AT-007"]; return r ? `AT-007 · PM2.5 <b>${AT.fmt(r.pm25)}</b> µg/m³ · ${AT.label(r.ai_status)} · confidence ${r.confidence_score}%${(r.checks?.neighbours_confirming || []).length ? ` · confirmed by ${r.checks.neighbours_confirming.join(", ")}` : ""}` : "waiting for data…"; },
     done: "Confirmed by neighbouring sensors.",
@@ -176,7 +176,7 @@ const STEPS = [
     title: "A resident reports smoke",
     body: "Citizens are part of the network. Send a smoke report near the fire: the AI compares it with nearby sensors (distance, timing, pollution increase, wind) and scores the match from 0 to 100.",
     action: "Send the report", run: async (st) => {
-      const r = await AT.api("/api/reports", { method: "POST", body: { type: "smoke", latitude: -23.546, longitude: -46.744, severity: "high", description: "Smoke from a vacant lot fire near the Jaguaré bridge" } });
+      const r = await AT.api("/api/reports", { method: "POST", body: { type: "smoke", latitude: 41.072, longitude: 28.796, severity: "high", description: "Smoke from a grass fire next to the İkitelli industrial zone" } });
       AT.upsert(AT.S.reports, r, "code"); AT.renderReportsOnMap();
       st.result = `Report <b>${esc(r.code)}</b>: AI correlation <b>${r.ai_correlation_score}/100</b> (${AT.label(r.correlation_status)}).`;
     },
@@ -253,7 +253,7 @@ setInterval(() => { if (tour && (STEPS[tour.i].wait || STEPS[tour.i].live)) rend
 
 // ============================================================ AI assistant
 const chat = [];
-const CHIPS = ["What's happening right now?", "Is it safe to run in Pinheiros?", "Why is AT-010 flagged?", "What does each tab do?", "How does the blockchain verification work?", "O que é PM2.5?"];
+const CHIPS = ["What's happening right now?", "Is it safe to run in Beşiktaş?", "Why is AT-010 flagged?", "What does each tab do?", "How does the blockchain verification work?", "Hava kalitesi şu an nasıl?"];
 let busy = false;
 
 function md(text) {
@@ -273,7 +273,7 @@ function md(text) {
 
 function renderChat() {
   const box = $("#aiMsgs");
-  box.innerHTML = (chat.length ? "" : `<div class="msg bot"><p>Hi! I'm the AirTrust assistant. I answer from the <b>live</b> sensor, event and blockchain data. Ask me in English or Portuguese.</p></div>`) +
+  box.innerHTML = (chat.length ? "" : `<div class="msg bot"><p>Hi! I'm the AirTrust assistant. I answer from the <b>live</b> sensor, event and blockchain data. Ask me in English, Türkçe or Português.</p></div>`) +
     chat.map((m) => `<div class="msg ${m.role === "user" ? "me" : "bot"}">${m.role === "user" ? `<p>${esc(m.content)}</p>` : md(m.content)}${m.note ? `<div class="note">${esc(m.note)}</div>` : ""}</div>`).join("") +
     (busy ? `<div class="msg bot processing"><p class="muted">Reading live data…</p></div>` : "");
   box.scrollTop = box.scrollHeight;

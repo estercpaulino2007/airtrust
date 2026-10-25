@@ -24,6 +24,16 @@ module.exports = {
   seedDays: Number(process.env.SEED_DAYS || 30),
   seedStepMinutes: 20,
 
+  // Pilot city. All local-time logic (rush hours, sunlight, history profiles) uses utcOffset.
+  city: {
+    name: "Istanbul",
+    country: "Türkiye",
+    utcOffset: 3, // TRT, no DST
+    tzLabel: "TRT",
+    timeZone: "Europe/Istanbul",
+    bounds: { minLat: 40.75, maxLat: 41.35, minLng: 28.35, maxLng: 29.6 },
+  },
+
   // Embedded AI assistant: bring-your-own-key. Without a key the assistant runs in offline mode
   // (rule-based answers grounded in live data). Groq's free tier works with the OpenAI format.
   assistant: {

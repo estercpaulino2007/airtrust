@@ -47,7 +47,7 @@ async function seed({ log = console.log } = {}) {
   core.engine.train(train);
   for (const r of train) core.engine.analyze(r); // warm profiles
 
-  const day = (d, h) => { const t = new Date(now - d * 864e5); t.setUTCHours(Math.floor(h) + 3, Math.round((h % 1) * 60), 0, 0); return t.getTime(); };
+  const day = (d, h) => { const t = new Date(now - d * 864e5); t.setUTCHours(Math.floor(h) - config.city.utcOffset, Math.round((h % 1) * 60), 0, 0); return t.getTime(); };
   const def = (id) => SCENARIOS.find((s) => s.id === id);
   const historical = [
     { id: "dust", at: day(26, 13), mins: 200 },
@@ -59,33 +59,35 @@ async function seed({ log = console.log } = {}) {
     { id: "heatwave", at: day(3, 12), mins: 300 },
   ];
   // Citizen reports: most during events, some background noise.
+  // Citizen reports: most during events, some background noise. Positioned relative to sensors.
+  const at = (code, dLat = 0, dLng = 0) => { const s = SENSORS.find((x) => x.code === code); return { lat: +(s.latitude + dLat).toFixed(4), lng: +(s.longitude + dLng).toFixed(4) }; };
   const reports = [
-    { at: day(26, 14), type: "dust", lat: -23.648, lng: -46.703, severity: "high", d: "Thick dust cloud near Largo Treze" },
-    { at: day(26, 15), type: "dust", lat: -23.641, lng: -46.712, severity: "medium", d: "Cars covered in dust, hard to breathe" },
-    { at: day(19, 11), type: "industrial", lat: -23.557, lng: -46.602, severity: "high", d: "Dark smoke from the rail yard chimney" },
-    { at: day(19, 11.5), type: "odor", lat: -23.552, lng: -46.596, severity: "medium", d: "Strong chemical smell in Mooca" },
-    { at: day(19, 12), type: "industrial", lat: -23.561, lng: -46.594, severity: "medium", d: "Grey haze over the depot" },
-    { at: day(12, 17), type: "smoke", lat: -23.546, lng: -46.744, severity: "high", d: "Smoke from vacant lot fire near Jaguaré bridge" },
-    { at: day(12, 17.4), type: "burning", lat: -23.552, lng: -46.739, severity: "high", d: "Burning vegetation, ash falling" },
-    { at: day(12, 18), type: "smoke", lat: -23.565, lng: -46.722, severity: "medium", d: "Smell of smoke at USP campus" },
-    { at: day(12, 18.5), type: "smoke", lat: -23.531, lng: -46.708, severity: "medium", d: "Hazy sky around Lapa station" },
-    { at: day(7, 8), type: "traffic", lat: -23.562, lng: -46.654, severity: "medium", d: "Standstill traffic on Paulista" },
-    { at: day(7, 8.5), type: "traffic", lat: -23.517, lng: -46.628, severity: "high", d: "Trucks idling on Marginal Tietê" },
-    { at: day(3, 14), type: "heat", lat: -23.551, lng: -46.634, severity: "high", d: "Extreme heat downtown, no wind" },
-    { at: day(3, 15), type: "heat", lat: -23.588, lng: -46.657, severity: "medium", d: "Very hot at Ibirapuera" },
-    { at: day(3, 15.5), type: "heat", lat: -23.584, lng: -46.584, severity: "high", d: "Stagnant hot air, eyes burning" },
+    { at: day(26, 14), type: "dust", ...at("AT-010", 0.004, 0.005), severity: "high", d: "Thick dust cloud from the construction sites" },
+    { at: day(26, 15), type: "dust", ...at("AT-010", -0.006, -0.004), severity: "medium", d: "Cars covered in dust, hard to breathe" },
+    { at: day(19, 11), type: "industrial", ...at("AT-008", 0.002, -0.003), severity: "high", d: "Dark smoke from a factory chimney in Dudullu" },
+    { at: day(19, 11.5), type: "odor", ...at("AT-008", -0.004, 0.004), severity: "medium", d: "Strong chemical smell in Ümraniye" },
+    { at: day(19, 12), type: "industrial", ...at("AT-008", 0.005, 0.006), severity: "medium", d: "Grey haze over the industrial zone" },
+    { at: day(12, 17), type: "smoke", ...at("AT-007", 0.003, -0.005), severity: "high", d: "Smoke from a grass fire next to İkitelli industrial zone" },
+    { at: day(12, 17.4), type: "burning", ...at("AT-007", -0.004, 0.006), severity: "high", d: "Burning vegetation and waste, ash falling" },
+    { at: day(12, 18), type: "smoke", ...at("AT-004", 0.004, -0.008), severity: "medium", d: "Smell of smoke in Bağcılar" },
+    { at: day(12, 18.5), type: "smoke", ...at("AT-009", -0.003, 0.004), severity: "medium", d: "Hazy sky over Başakşehir" },
+    { at: day(7, 8), type: "traffic", ...at("AT-002", -0.002, 0.003), severity: "medium", d: "Standstill traffic at Mecidiyeköy" },
+    { at: day(7, 8.5), type: "traffic", ...at("AT-002", 0.006, -0.004), severity: "high", d: "Buses and trucks idling on Büyükdere Avenue" },
+    { at: day(3, 14), type: "heat", ...at("AT-001", 0.002, -0.004), severity: "high", d: "Extreme heat in Sultanahmet, no wind" },
+    { at: day(3, 15), type: "heat", ...at("AT-005", -0.003, -0.002), severity: "medium", d: "Very hot even at Emirgan Park" },
+    { at: day(3, 15.5), type: "heat", ...at("AT-012", 0.004, 0.003), severity: "high", d: "Stagnant hot air, eyes burning" },
     // background / uncorroborated
-    { at: day(28, 9), type: "odor", lat: -23.540, lng: -46.460, severity: "low", d: "Sewage smell" },
-    { at: day(24, 20), type: "smoke", lat: -23.590, lng: -46.660, severity: "low", d: "Barbecue smoke in the park" },
-    { at: day(22, 7), type: "traffic", lat: -23.567, lng: -46.690, severity: "medium", d: "Heavy traffic on Rebouças" },
-    { at: day(17, 22), type: "smoke", lat: -23.655, lng: -46.705, severity: "low", d: "Small fire in a backyard" },
-    { at: day(14, 6), type: "dust", lat: -23.581, lng: -46.585, severity: "low", d: "Construction dust" },
-    { at: day(10, 13), type: "odor", lat: -23.517, lng: -46.627, severity: "medium", d: "Fuel smell near the river" },
-    { at: day(8, 18), type: "traffic", lat: -23.560, lng: -46.657, severity: "medium", d: "Bus lane jammed" },
-    { at: day(6, 11), type: "dust", lat: -23.648, lng: -46.709, severity: "low", d: "Road works" },
-    { at: day(5, 16), type: "smoke", lat: -23.528, lng: -46.702, severity: "medium", d: "Burning trash near Lapa" },
-    { at: day(2, 9), type: "industrial", lat: -23.550, lng: -46.748, severity: "low", d: "Steam from factory" },
-    { at: day(1, 19), type: "traffic", lat: -23.551, lng: -46.633, severity: "medium", d: "Evening congestion downtown" },
+    { at: day(28, 9), type: "odor", ...at("AT-011", 0.003, 0.004), severity: "low", d: "Sewage smell near the coast" },
+    { at: day(24, 20), type: "smoke", ...at("AT-005", 0.002, 0.003), severity: "low", d: "Barbecue smoke in the park" },
+    { at: day(22, 7), type: "traffic", ...at("AT-003", 0.003, -0.002), severity: "medium", d: "Heavy traffic on Barbaros Boulevard" },
+    { at: day(17, 22), type: "smoke", ...at("AT-010", -0.005, 0.006), severity: "low", d: "Small fire in a backyard" },
+    { at: day(14, 6), type: "dust", ...at("AT-012", -0.003, 0.004), severity: "low", d: "Construction dust" },
+    { at: day(10, 13), type: "odor", ...at("AT-006", 0.002, 0.004), severity: "medium", d: "Fuel smell near the ferry pier" },
+    { at: day(8, 18), type: "traffic", ...at("AT-002", 0.003, 0.002), severity: "medium", d: "Metrobus lane jammed" },
+    { at: day(6, 11), type: "dust", ...at("AT-010", 0.006, -0.003), severity: "low", d: "Road works" },
+    { at: day(5, 16), type: "smoke", ...at("AT-009", 0.004, 0.003), severity: "medium", d: "Burning trash near Başakşehir" },
+    { at: day(2, 9), type: "industrial", ...at("AT-007", 0.001, 0.002), severity: "low", d: "Steam from a factory" },
+    { at: day(1, 19), type: "traffic", ...at("AT-001", 0.003, 0.004), severity: "medium", d: "Evening congestion in Eminönü" },
   ].map((r) => ({ ...r, at: Math.round(r.at / 60_000) * 60_000 }));
 
   log(`Simulating ${config.seedDays} days × ${SENSORS.length} sensors…`);
