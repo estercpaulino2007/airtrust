@@ -175,14 +175,14 @@ All passwords: **`AirTrust2026!`**
 
 ## Onboarding & AI assistant
 
-![Guided demo: event verified and sealed](docs/screenshot-guided-demo.png)
+![Verified events, each sealed on the blockchain](docs/screenshot-guided-demo.png)
 
 - **How it works** tab: what AirTrust is and who it's for, the 5-step pipeline, what every tab does, how to read the map, a glossary and the demo accounts.
 - **Guided demo** (2 minutes, 9 steps): every step has a *do it for me* button and waits for the live system (e.g. "wait until neighbours confirm the fire"), ending with the tamper demo.
 - **"How to read this screen"** help on the command center.
 - **Ask AirTrust AI** (✦ button, bottom right): answers questions like *"Is it safe to run in Beşiktaş?"*, *"Why is AT-010 flagged?"*, *"What does each tab do?"* in English, Turkish or Portuguese, grounded in a live snapshot of sensors, events, alerts, reports and ledger status.
   - **LLM mode** (bring-your-own-key): set `ASSISTANT_API_KEY` (e.g. a free [Groq](https://console.groq.com) key). The model receives the live snapshot and is instructed to answer only from it, never inventing data.
-  ![Ask AirTrust AI answering in Portuguese from live data](docs/screenshot-assistant.png)
+  ![Ask AirTrust AI answering from live data](docs/screenshot-assistant.png)
   - **Offline mode** (default, no key): a deterministic assistant (English/Portuguese) answers from the same live data, so the feature works for anyone who clones the repo. If the LLM provider fails, it falls back automatically.
 
 ## How the AI works

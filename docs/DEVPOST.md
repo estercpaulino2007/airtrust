@@ -65,4 +65,4 @@ solidity · hardhat · groq · llm · ethers.js · node.js · sqlite · websocke
 
 ## Links
 - Repository: https://github.com/estercpaulino2007/airtrust
-- Demo video: <YouTube link>
+- Demo video: https://youtu.be/UFu0PNrAswI
