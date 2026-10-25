@@ -85,13 +85,28 @@ async function boot() {
 let map, markers = {}, heat = {}, wind = {}, reportLayer, eventLayer;
 function initMap() {
   map = L.map("map", { zoomControl: true, attributionControl: true, zoomSnap: 0.25, zoomDelta: 0.5 }).setView([-23.565, -46.66], 11.4);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-    subdomains: "abcd", maxZoom: 19, attribution: '&copy; OpenStreetMap &copy; CARTO',
-  }).addTo(map);
+  addBasemap(map);
   reportLayer = L.layerGroup().addTo(map);
   eventLayer = L.layerGroup().addTo(map);
   map.zoomControl.setPosition("bottomright");
 }
+/**
+ * Dark basemap without any API key: Esri "Dark Gray Canvas" (base + labels).
+ * If those tiles fail to load, fall back to OpenStreetMap tiles darkened with a CSS filter.
+ */
+function addBasemap(m) {
+  const esri = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
+  const base = L.tileLayer(esri + "World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16, attribution: "Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors" }).addTo(m);
+  const labels = L.tileLayer(esri + "World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16, pane: "overlayPane", opacity: 0.85 }).addTo(m);
+  let errors = 0, switched = false;
+  base.on("tileerror", () => {
+    if (switched || ++errors < 4) return;
+    switched = true;
+    m.removeLayer(base); m.removeLayer(labels);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, className: "osm-dark", attribution: "&copy; OpenStreetMap contributors" }).addTo(m);
+  });
+}
+
 function fitSensors() {
   if (!S.sensors.length) return;
   map.invalidateSize();
@@ -373,7 +388,7 @@ function initReportForm() {
   $("#typeChips").innerHTML = RTYPES.map(([k, l]) => `<button type="button" role="radio" aria-checked="${k === rType}" class="${k === rType ? "on" : ""}" data-type="${k}">${l}</button>`).join("");
   $("#typeChips").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; rType = b.dataset.type; $$("#typeChips button").forEach((x) => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", x === b); }); });
   reportMap = L.map("reportMap", { attributionControl: false }).setView([rLat, rLng], 12);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { subdomains: "abcd" }).addTo(reportMap);
+  addBasemap(reportMap);
   for (const s of S.sensors) L.circleMarker([s.latitude, s.longitude], { radius: 4, color: "#00e5ff", weight: 1, fillOpacity: 0.6 }).addTo(reportMap).bindTooltip(s.code);
   reportPin = L.marker([rLat, rLng], { draggable: true }).addTo(reportMap);
   const setLoc = (ll) => { rLat = ll.lat; rLng = ll.lng; reportPin.setLatLng(ll); $("#rLoc").value = `${rLat.toFixed(4)}, ${rLng.toFixed(4)}`; };
