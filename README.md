@@ -2,6 +2,8 @@
 
 **See the atmosphere. Trust the evidence. Act in time.**
 
+   ▶️ **Demo video:** https://youtu.be/UFu0PNrAswI
+
 AirTrust turns fragmented environmental signals into **trusted, explainable and verifiable** air-quality intelligence. It combines a low-cost IoT sensor mesh, citizen science, an explainable AI engine and blockchain integrity proofs in a real-time geospatial command center.
 
 > **IEEE ClimateChain Global Hackathon 2026 · Track: Climate Data & Environmental Monitoring**
