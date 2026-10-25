@@ -104,9 +104,9 @@ Rules:
 - When useful, tell the user which tab to open or which button to click.`;
 
 // ---------------------------------------------------------------------------- LLM mode
-async function askLLM(messages, ctx) {
+async function askLLM(messages, ctx, lang = "en") {
   const a = config.assistant;
-  const system = `${SYSTEM_PROMPT}\n\nLIVE DATA:\n${ctx}`;
+  const system = `${SYSTEM_PROMPT}\n\nLIVE DATA:\n${ctx}\n\nIMPORTANT: the user's latest message is in ${LANG_NAME[lang]}. Write your whole reply in ${LANG_NAME[lang]}, even though the city and the place names are Turkish.`;
   const hist = messages.slice(-10).map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content).slice(0, 2000) }));
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 25_000);
@@ -136,11 +136,23 @@ async function askLLM(messages, ctx) {
 const PT_HINT = /[ãõçáéíóúâêô]|\b(o que|qual|quais|como|onde|est[aá]|agora|ar |seguro|posso|correr|sensor(es)? |evento|alerta|aba|explica|funciona|para que|por ?que|hoje|bairro|previs[aã]o|ajuda|oi|ol[aá])\b/i;
 const norm = (s) => s.toLocaleLowerCase("tr").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ı/g, "i");
 
+const TR_HINT = /[ğşı]|\b(ne|nasıl|nasil|nedir|şu an|su an|şimdi|simdi|hava|durum|güvenli|guvenli|mi|mı|mu|mü|var mı|koşmak|kosmak|sensör|olay|uyarı|neden|merhaba)\b/i;
+function stripPlaces(question, sensors) {
+  let bare = question.replace(/[İi]stanbul|[İi]stambul|t[üu]rk[iı]ye|turquia/gi, "");
+  for (const s of sensors) for (const w of `${s.district} ${s.name}`.split(/\s+/)) if (w.length > 3) bare = bare.split(w).join("");
+  return bare;
+}
+function guessLang(question, sensors) {
+  const bare = stripPlaces(question, sensors);
+  if (TR_HINT.test(bare)) return "tr";
+  if (PT_HINT.test(bare)) return "pt";
+  return "en";
+}
+const LANG_NAME = { en: "English", pt: "Portuguese", tr: "Turkish" };
+
 function localAnswer(question, snap) {
   // Place names (Bağcılar, Başakşehir, Şişli…) contain accents, so remove them before guessing the language.
-  let bare = question.replace(/[İi]stanbul|[İi]stambul|t[üu]rk[iı]ye|turquia/gi, "");
-  for (const s of snap.sensors) for (const w of `${s.district} ${s.name}`.split(/\s+/)) if (w.length > 3) bare = bare.split(w).join("");
-  const pt = PT_HINT.test(bare);
+  const pt = PT_HINT.test(stripPlaces(question, snap.sensors));
   const L = pt ? "pt" : "en";
   const t = (en, ptx) => (pt ? ptx : en);
   const q = norm(question);
@@ -256,7 +268,7 @@ async function answer({ messages, core, db, ledgerStatus }) {
   const question = String(messages.filter((m) => m.role !== "assistant").at(-1)?.content || "").slice(0, 2000);
   if (config.assistant.apiKey) {
     try {
-      const text = await askLLM(messages, contextText(snap));
+      const text = await askLLM(messages, contextText(snap), guessLang(question, snap.sensors));
       if (text) return { answer: text, ...status() };
     } catch (e) {
       return { answer: localAnswer(question, snap), mode: "offline", provider: "AirTrust offline assistant", model: "rule-based, live data", fallback_reason: `LLM unavailable: ${e.name === "AbortError" ? "timeout" : e.message}` };

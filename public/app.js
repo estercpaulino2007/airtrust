@@ -708,7 +708,7 @@ async function init() {
 }
 
 async function loginAs(email) {
-  if (S.user && S.user.email === email) return S.user;
+  // Always sign in fresh: a stored session may have expired (8 h TTL) and would make the demo trigger fail silently.
   const d = await api("/api/auth/login", { method: "POST", body: { email, password: "AirTrust2026!" } });
   S.token = d.token; S.user = d.user;
   try { sessionStorage.setItem("airtrust_session", JSON.stringify(d)); } catch {}
