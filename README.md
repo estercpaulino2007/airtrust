@@ -6,6 +6,8 @@
 
 AirTrust turns fragmented environmental signals into **trusted, explainable and verifiable** air-quality intelligence. It combines a low-cost IoT sensor mesh, citizen science, an explainable AI engine and blockchain integrity proofs in a real-time geospatial command center.
 
+##Climate impact:
+Air pollution and climate change are tied together. The same wind, heat and industrial emissions that shape climate also decide where smoke and dust reach people. AirTrust turns low-cost sensors and citizen reports into environmental data that can be checked, so cities can act on evidence rather than estimates. The verification layer means that a reading, once recorded, cannot be quietly changed, which matters for emissions reporting and climate policy. Next steps include linking sensors to heat-island mapping, industrial emission tracking and calibration against national monitoring networks.
 > **IEEE ClimateChain Global Hackathon 2026 · Track: Climate Data & Environmental Monitoring**
 > *"Enable reliable and accessible climate data systems. Environmental data is fragmented and difficult to verify."*
 
